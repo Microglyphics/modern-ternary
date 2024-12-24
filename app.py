@@ -68,56 +68,79 @@ def validate_and_process():
     ]
     return avg_score
 
-# The rest of your imports and setup code remains the same...
+# Add custom CSS style for the button
+st.markdown("""
+    <style>
+        .stButton > button {
+            background-color: #4CAF50;  /* Green color */
+            color: white;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
+# Submit button logic
 if st.button("Submit", key="submit_button"):
     if all_questions_answered:
         avg_score = validate_and_process()
 
-        # Generate the ternary chart
-        figure, tax = ternary.figure(scale=100)
-        tax.boundary(linewidth=1.5)
-        tax.gridlines(multiple=10, color="gray", linewidth=0.5)
-
-        # Add axis labels for the ternary chart
-        # Create matplotlib figure first
+        # Create matplotlib figure first (only once)
         figure, ax = plt.subplots()
 
-        # Create the ternary axes
+        # Create the ternary axes (only once)
         scale = 100
         tax = ternary.TernaryAxesSubplot(ax=ax, scale=scale)
 
+        # Add boundary and gridlines
         tax.boundary(linewidth=1.5)
         tax.gridlines(multiple=10, color="gray", linewidth=0.5)
 
-        # Update axis labels with correct positions
-        # PostModern on lower-left
+        # Generate tick positions in percentage format (0 to 100)
+        ticks = range(0, 101, 10)  # This creates [0, 10, 20, ..., 100]
+
+        # Add ticks with labels
+        tax.ticks(ticks=ticks, 
+                axis='lbr',  # left, bottom, right
+                linewidth=1, 
+                multiple=10,
+                offset=0.02)
+
+        tax.clear_matplotlib_ticks()
+
+        # Add corner labels
         tax.left_corner_label("PostModern", fontsize=12, offset=0.15)
-
-        # Modern at top-center
         tax.top_corner_label("Modern", fontsize=12, offset=0.15)
-
-        # PreModern on lower-right
         tax.right_corner_label("PreModern", fontsize=12, offset=0.15)
 
-        # Plot individual scores
+        # Add interior triangle connecting 50% points
+        line_kwargs = {
+            'color': 'blue',
+            'linestyle': '-',
+            'linewidth': 2.0,
+            'alpha': 1.0,
+            'zorder': 10
+        }
+
+        # Convert percentages to proportions (50% = 0.5)
+        point1 = (0.5, 0.5, 0)     # Bottom point (PreMod=50, Mod=50, Post=0)
+        point2 = (0.5, 0, 0.5)     # Right point  (PreMod=50, Mod=0, Post=50)
+        point3 = (0, 0.5, 0.5)     # Left point   (PreMod=0, Mod=50, Post=50)
+
+        # Draw the interior triangle
+        tax.line(point1, point2, **line_kwargs)
+        tax.line(point2, point3, **line_kwargs)
+        tax.line(point3, point1, **line_kwargs)
+
+        # Plot the data points
         if user_scores:
             tax.scatter(user_scores, marker='o', color='blue', label="Individual Scores")
         
         # Highlight the aggregated score
         tax.scatter([avg_score], marker='o', color='red', label="Aggregated Score")
 
-        # Add a legend and an annotation for the aggregated score
+        # Add legend
         tax.legend()
-        tax.annotate(
-            f"PreModern: {avg_score[0]:.2f}, Modern: {avg_score[1]:.2f}, PostModern: {avg_score[2]:.2f}",
-            position=(50, -7.5),
-            ha="center",
-            fontsize=10,
-            bbox=dict(boxstyle="round,pad=0.5", edgecolor="red", facecolor="white"),
-        )
 
-        # Render the chart
+        # Show the plot
         st.pyplot(figure)
 
         # Explanation of the results
