@@ -56,3 +56,16 @@ responses.db
 .vscode/
 .idea/
 *.sublime-workspace
+
+# Ignore local Python scripts used for testing or debugging
+debug_question1_chart.py
+q_modern.py
+q1_test.py
+questionnaire_full.py
+questionnaire_plotter.py
+
+# Ignore JSON files used for questions and responses
+questions_responses.json
+
+# Ignore images and generated charts
+ternary_chart.png
