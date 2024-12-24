@@ -115,24 +115,24 @@ for q_key, question in questions.items():
     warning_placeholder = st.empty()
 
     # Add empty top choice and randomised options
-    options = ["Select an option from the list below to proceed."] + get_randomised_options(q_key, responses[q_key])
+    options = ["Select an option from this list."] + get_randomised_options(q_key, responses[q_key])
 
     # Capture user response
     user_choice = st.radio("", options, key=q_key)
 
     # Display warning if the first option (empty choice) is selected
-    if user_choice == "Select an option from the list below to proceed.":
+    if user_choice == "Select an option from this list.":
         warning_placeholder.warning("⚠️ Please select an option.")
     else:
         warning_placeholder.empty()  # Clear the warning if a valid option is selected
 
     # Save the response
-    if user_choice != "Select an option from the list below to proceed.":
+    if user_choice != "Select an option from this list.":
         user_responses[q_key] = user_choice
 
 # Flag to check if all questions are answered
 all_questions_answered = all(
-    user_responses.get(q_key) and user_responses[q_key] != "Select an option from the list below to proceed."
+    user_responses.get(q_key) and user_responses[q_key] != "Select an option from this list."
     for q_key in questions
 )
 
@@ -145,7 +145,7 @@ if st.button("Submit", disabled=not all_questions_answered):
     st.write("Thank you for your responses!")
 
     # Save responses or process them here
-    st.write("Your responses are:", user_responses)
+    # st.write("Your responses are:", user_responses) ## Removed for now
 
     # Save responses to database
     for q, r in user_responses.items():
