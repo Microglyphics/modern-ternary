@@ -96,6 +96,10 @@ all_questions_answered = True
 # Create a placeholder for the warning box above all questions
 warning_placeholder = st.empty()
 
+# Add a warning for unanswered questions
+def show_warning(question_text):
+    st.warning(f"⚠️ Please select an option for this question.")
+
 # Check if 'randomised_responses' is already stored in session_state
 def get_randomised_options(q_key, options):
     if "randomised_responses" not in st.session_state:
@@ -103,10 +107,6 @@ def get_randomised_options(q_key, options):
     if q_key not in st.session_state.randomised_responses:
         st.session_state.randomised_responses[q_key] = random.sample(options, len(options))
     return st.session_state.randomised_responses[q_key]
-
-# Add a warning for unanswered questions
-def show_warning(question_text):
-    st.warning(f"⚠️ Please select an option for {question_text} to proceed.")
 
 # Collect user responses with a top empty choice
 user_responses = {}
