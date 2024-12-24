@@ -100,43 +100,29 @@ warning_placeholder = st.empty()
 from streamlit.runtime.state.session_state import _get_session_state
 import random
 
-# Function to randomise responses once per question
-def get_randomised_options(q_key, options):
-    state = _get_session_state()
-    if f"shuffled_{q_key}" not in state:
-        state[f"shuffled_{q_key}"] = random.sample(options, len(options))
-    return state[f"shuffled_{q_key}"]
+import random
+import streamlit as st
+
+# Check if 'randomised_responses' is already stored in session_state
+if "randomised_responses" not in st.session_state:
+    st.session_state.randomised_responses = {
+        q_key: random.sample(options, len(options))  # Randomise once per question
+        for q_key, options in responses.items()
+    }
 
 # Collect user responses
 user_responses = {}
-all_questions_answered = True
-
 for q_key, question in questions.items():
     st.subheader(question)
 
-    # Randomise responses only once
-    placeholder_message = "Select an option from the list below to proceed."
-    actual_options = responses[q_key]
-    randomised_options = get_randomised_options(q_key, actual_options)
+    # Use pre-randomised options from session_state
+    options = st.session_state.randomised_responses[q_key]
+    warning_placeholder = st.empty()  # Placeholder for warnings
+    user_responses[q_key] = st.radio("", options)
 
-    # Combine placeholder with randomised options
-    options = [placeholder_message] + randomised_options
-
-    # Render radio button
-    selected_option = st.radio("", options, index=0, key=q_key)
-
-    # Show warning if placeholder is selected
-    if selected_option == placeholder_message:
-        st.markdown(
-            f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
-            f"padding: 10px; border-radius: 5px; margin-bottom: 10px;'>"
-            f"⚠ Please select an option for <strong>{question}</strong>.</div>",
-            unsafe_allow_html=True,
-        )
-        all_questions_answered = False
-    else:
-        user_responses[q_key] = selected_option
-
+    # If no option is selected, show a warning
+    if not user_responses[q_key]:
+        warning_placeholder.warning("⚠️ Please select an option.")
 
 # Submit button
 if st.button("Submit"):
