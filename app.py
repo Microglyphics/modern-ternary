@@ -96,13 +96,6 @@ all_questions_answered = True
 # Create a placeholder for the warning box above all questions
 warning_placeholder = st.empty()
 
-# Import caching for persistent randomisation
-from streamlit.runtime.state.session_state import _get_session_state
-import random
-
-import random
-import streamlit as st
-
 # Check if 'randomised_responses' is already stored in session_state
 if "randomised_responses" not in st.session_state:
     st.session_state.randomised_responses = {
