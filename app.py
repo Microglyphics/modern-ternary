@@ -95,22 +95,29 @@ user_responses = {}
 for q_key, question in questions.items():
     st.subheader(question)
     
-    # Add an instruction as the placeholder
-    options = ["Select an option from the list below."] + responses[q_key]
-    random.shuffle(responses[q_key])  # Randomise only the actual responses
+    # Persistent instruction (dual-purpose message)
+    placeholder_message = "Select an option from the list below to proceed."
 
-    # Render the radio button
-    user_responses[q_key] = st.radio(
-        "",
-        options,
-        index=0,  # Default to the placeholder
-        key=q_key
+    # Combine the placeholder with actual responses
+    options = [placeholder_message] + responses[q_key]
+    random.shuffle(responses[q_key])  # Randomise only the actual responses
+    
+    # Render the radio button with dynamic feedback
+    selected_option = st.radio(
+        "", options, index=0, key=q_key
     )
 
-    # Display a warning if the user hasn't selected a valid option
-    if user_responses[q_key] == "Select an option from the list below.":
-        st.warning(f"Please select an option for {question}.")
-
+    # Customise the warning text (embedded under the question)
+    if selected_option == placeholder_message:
+        st.markdown(
+            f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
+            f"padding: 10px; border-radius: 5px;'>"
+            f"Please select an option for <b>{question}</b>.</div>",
+            unsafe_allow_html=True,
+        )
+    
+    # Save only the valid response
+    user_responses[q_key] = None if selected_option == placeholder_message else selected_option
 
 # Submit button
 if st.button("Submit"):
