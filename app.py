@@ -96,6 +96,17 @@ all_questions_answered = True
 # Create a placeholder for the warning box above all questions
 warning_placeholder = st.empty()
 
+# Import caching for persistent randomisation
+from streamlit.runtime.state.session_state import _get_session_state
+import random
+
+# Function to randomise responses once per question
+def get_randomised_options(q_key, options):
+    state = _get_session_state()
+    if f"shuffled_{q_key}" not in state:
+        state[f"shuffled_{q_key}"] = random.sample(options, len(options))
+    return state[f"shuffled_{q_key}"]
+
 # Collect user responses
 user_responses = {}
 all_questions_answered = True
@@ -103,29 +114,29 @@ all_questions_answered = True
 for q_key, question in questions.items():
     st.subheader(question)
 
-    # Persistent instruction for each question
+    # Randomise responses only once
     placeholder_message = "Select an option from the list below to proceed."
-    options = [placeholder_message] + responses[q_key]
-    random.shuffle(responses[q_key])  # Randomise the actual responses
+    actual_options = responses[q_key]
+    randomised_options = get_randomised_options(q_key, actual_options)
 
-    # Insert the placeholder at the top after shuffling
-    options = [placeholder_message] + responses[q_key]
+    # Combine placeholder with randomised options
+    options = [placeholder_message] + randomised_options
 
-    # Render the radio button
+    # Render radio button
     selected_option = st.radio("", options, index=0, key=q_key)
 
-    # Check if the placeholder is still selected
+    # Show warning if placeholder is selected
     if selected_option == placeholder_message:
-        # Warning message for unanswered questions
         st.markdown(
             f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
-            f"padding: 10px; border-radius: 5px;'>"
+            f"padding: 10px; border-radius: 5px; margin-bottom: 10px;'>"
             f"⚠ Please select an option for <strong>{question}</strong>.</div>",
             unsafe_allow_html=True,
         )
-        all_questions_answered = False  # Mark as incomplete
+        all_questions_answered = False
     else:
         user_responses[q_key] = selected_option
+
 
 # Submit button
 if st.button("Submit"):
