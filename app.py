@@ -1,8 +1,7 @@
 import streamlit as st
 import random
 import matplotlib.pyplot as plt
-import ternary
-import sqlite3
+import ternary # This is the chart object
 
 # Questions and responses
 questions = {
@@ -93,13 +92,6 @@ init_db()
 # Flag for whether all questions are answered
 all_questions_answered = True
 
-# Create a placeholder for the warning box above all questions
-warning_placeholder = st.empty()
-
-# Add a warning for unanswered questions
-def show_warning(question_text):
-    st.warning(f"⚠️ Please select an option for this question.")
-
 # Check if 'randomised_responses' is already stored in session_state
 def get_randomised_options(q_key, options):
     if "randomised_responses" not in st.session_state:
@@ -108,13 +100,20 @@ def get_randomised_options(q_key, options):
         st.session_state.randomised_responses[q_key] = random.sample(options, len(options))
     return st.session_state.randomised_responses[q_key]
 
+# Add a warning for unanswered questions
+def show_warning():
+    st.warning("⚠️ Please select an option for this question.")
+
 # Collect user responses with a top empty choice
 user_responses = {}
 for q_key, question in questions.items():
     # Display the question
     st.subheader(question)
-    
-    # Add empty top choice
+
+    # Add placeholder for warning message (dynamically inserted)
+    warning_placeholder = st.empty()
+
+    # Add empty top choice and randomised options
     options = ["Select an option from the list below to proceed."] + get_randomised_options(q_key, responses[q_key])
 
     # Capture user response
@@ -122,10 +121,13 @@ for q_key, question in questions.items():
 
     # Display warning if the first option (empty choice) is selected
     if user_choice == "Select an option from the list below to proceed.":
-        show_warning(question)
+        warning_placeholder.warning("⚠️ Please select an option.")
     else:
-        user_responses[q_key] = user_choice
+        warning_placeholder.empty()  # Clear the warning if a valid option is selected
 
+    # Save the response
+    if user_choice != "Select an option from the list below to proceed.":
+        user_responses[q_key] = user_choice
 
 # Submit button
 if st.button("Submit"):
