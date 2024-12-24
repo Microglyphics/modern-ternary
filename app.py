@@ -90,11 +90,17 @@ st.title("Ternary Chart Questionnaire")
 # Initialize database
 init_db()
 
+# Flag for whether all questions are answered
+all_questions_answered = True
+
+# Create a placeholder for the warning box above all questions
+warning_placeholder = st.empty()
+
 # Collect user responses
 user_responses = {}
 for q_key, question in questions.items():
     st.subheader(question)
-    
+
     # Persistent instruction (dual-purpose message)
     placeholder_message = "Select an option from the list below to proceed."
 
@@ -107,17 +113,24 @@ for q_key, question in questions.items():
         "", options, index=0, key=q_key
     )
 
-    # Customise the warning text (embedded under the question)
-    if selected_option == placeholder_message:
-        st.markdown(
-            f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
-            f"padding: 10px; border-radius: 5px;'>"
-            f"Please select an option for <b>{question}</b>.</div>",
-            unsafe_allow_html=True,
-        )
-    
     # Save only the valid response
-    user_responses[q_key] = None if selected_option == placeholder_message else selected_option
+    if selected_option == placeholder_message:
+        all_questions_answered = False  # Mark as incomplete
+        user_responses[q_key] = None
+    else:
+        user_responses[q_key] = selected_option
+
+# Display warning message above all questions if not all are answered
+if not all_questions_answered:
+    warning_placeholder.markdown(
+        f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
+        f"padding: 10px; border-radius: 5px;'>"
+        f"⚠ Please ensure all questions are answered before submitting.</div>",
+        unsafe_allow_html=True,
+    )
+else:
+    warning_placeholder.empty()  # Clear the warning box if all questions are answered
+
 
 # Submit button
 if st.button("Submit"):
