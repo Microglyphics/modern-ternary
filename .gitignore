@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Packages
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg-info/
+pip-wheel-metadata/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS files
+.DS_Store
+*.AppleDouble
+.AppleDB
+
+# Linux/macOS swap files
+*.swp
+*.swo
+*.~lock.*
+
+# SQLite database
+responses.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Streamlit deployment files
+.streamlit/
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-workspace

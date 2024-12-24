@@ -1,0 +1,55 @@
+{
+    "questions": {
+      "Q1": "1. What is the source of truth?",
+      "Q2": "2. What is the best way to understand the world?",
+      "Q3": "3. How is knowledge best gained?",
+      "Q4": "4. What is your view of the world?",
+      "Q5": "5. How should societal values be oriented?",
+      "Q6": "6. How is identity defined?"
+    },
+    "responses": {
+      "Q1": {
+        "R1": "Truth is given by divine or spiritual authority.",
+        "R2": "Truth is discovered through empirical evidence.",
+        "R3": "Truth is shaped by cultural or personal perspectives.",
+        "R4": "Truth is primarily divine but interpreted through reason.",
+        "R5": "Truth is mostly objective but influenced by culture."
+      },
+      "Q2": {
+        "R1": "Understand the world through sacred traditions.",
+        "R2": "Understand the world by uncovering universal principles.",
+        "R3": "Critique and question established assumptions.",
+        "R4": "Sacred stories reveal truths but must align with reason.",
+        "R5": "Universal principles exist but are shaped by culture."
+      },
+      "Q3": {
+        "R1": "Knowledge is gained through spiritual intuition.",
+        "R2": "Knowledge is gained through logical reasoning.",
+        "R3": "Knowledge is gained by questioning existing ideas.",
+        "R4": "Mystical insights must be balanced with reasoning.",
+        "R5": "Logical reasoning is essential but subjective."
+      },
+      "Q4": {
+        "R1": "The world is governed by a divine cosmic order.",
+        "R2": "The world progresses through scientific advancements.",
+        "R3": "The world is a critique of traditional systems.",
+        "R4": "Cosmic order exists, but progress plays a role.",
+        "R5": "Progress must be critically examined through irony."
+      },
+      "Q5": {
+        "R1": "Societal values follow established traditions.",
+        "R2": "Values are guided by objective, neutral standards.",
+        "R3": "Values adapt to subjective or situational contexts.",
+        "R4": "Respect traditions but balance with objectivity.",
+        "R5": "Objective standards must consider subjective contexts."
+      },
+      "Q6": {
+        "R1": "Identity is defined by one’s role in a community.",
+        "R2": "Identity is discovered through personal authenticity.",
+        "R3": "Identity is fluid and changes with contexts.",
+        "R4": "Identity is collective but allows personal expression.",
+        "R5": "Identity is personal but adapts to fluid contexts."
+      }
+    }
+  }
+  
