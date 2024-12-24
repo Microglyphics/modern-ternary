@@ -97,25 +97,35 @@ all_questions_answered = True
 warning_placeholder = st.empty()
 
 # Check if 'randomised_responses' is already stored in session_state
-if "randomised_responses" not in st.session_state:
-    st.session_state.randomised_responses = {
-        q_key: random.sample(options, len(options))  # Randomise once per question
-        for q_key, options in responses.items()
-    }
+def get_randomised_options(q_key, options):
+    if "randomised_responses" not in st.session_state:
+        st.session_state.randomised_responses = {}
+    if q_key not in st.session_state.randomised_responses:
+        st.session_state.randomised_responses[q_key] = random.sample(options, len(options))
+    return st.session_state.randomised_responses[q_key]
 
-# Collect user responses
+# Add a warning for unanswered questions
+def show_warning(question_text):
+    st.warning(f"⚠️ Please select an option for {question_text} to proceed.")
+
+# Collect user responses with a top empty choice
 user_responses = {}
 for q_key, question in questions.items():
+    # Display the question
     st.subheader(question)
+    
+    # Add empty top choice
+    options = ["Select an option from the list below to proceed."] + get_randomised_options(q_key, responses[q_key])
 
-    # Use pre-randomised options from session_state
-    options = st.session_state.randomised_responses[q_key]
-    warning_placeholder = st.empty()  # Placeholder for warnings
-    user_responses[q_key] = st.radio("", options)
+    # Capture user response
+    user_choice = st.radio("", options, key=q_key)
 
-    # If no option is selected, show a warning
-    if not user_responses[q_key]:
-        warning_placeholder.warning("⚠️ Please select an option.")
+    # Display warning if the first option (empty choice) is selected
+    if user_choice == "Select an option from the list below to proceed.":
+        show_warning(question)
+    else:
+        user_responses[q_key] = user_choice
+
 
 # Submit button
 if st.button("Submit"):
