@@ -130,9 +130,23 @@ for q_key, question in questions.items():
     if user_choice != "Select an option from the list below to proceed.":
         user_responses[q_key] = user_choice
 
-# Submit button
-if st.button("Submit"):
+# Flag to check if all questions are answered
+all_questions_answered = all(
+    user_responses.get(q_key) and user_responses[q_key] != "Select an option from the list below to proceed."
+    for q_key in questions
+)
+
+# Disable the Submit button if not all questions are answered
+if not all_questions_answered:
+    st.warning("⚠️ Please answer all questions before submitting.")
+
+# Submit button logic
+if st.button("Submit", disabled=not all_questions_answered):
     st.write("Thank you for your responses!")
+
+    # Save responses or process them here
+    st.write("Your responses are:", user_responses)
+
     # Save responses to database
     for q, r in user_responses.items():
         save_response(q, r)
