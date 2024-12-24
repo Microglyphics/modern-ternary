@@ -64,9 +64,6 @@ q1_test.py
 questionnaire_full.py
 questionnaire_plotter.py
 
-# Ignore JSON files used for questions and responses
-questions_responses.json
-
 # Ignore workspace settings
 TernaryChartProject.code-workspace
 
