@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 import matplotlib.pyplot as plt
-import ternary
+import ternary # this is python-ternary
 import json
 
 # Load questions and responses from external JSON file
