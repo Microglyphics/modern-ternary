@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import matplotlib.pyplot as plt
 import ternary # This is the chart object
+import sqlite3
 
 # Questions and responses
 questions = {
