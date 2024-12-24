@@ -80,9 +80,25 @@ if st.button("Submit", key="submit_button"):
         tax.gridlines(multiple=10, color="gray", linewidth=0.5)
 
         # Add axis labels for the ternary chart
-        tax.left_axis_label("PreModern", fontsize=12, offset=0.16)
-        tax.right_axis_label("Modern", fontsize=12, offset=0.16)
-        tax.bottom_axis_label("PostModern", fontsize=12, offset=0.04)
+        # Create matplotlib figure first
+        figure, ax = plt.subplots()
+
+        # Create the ternary axes
+        scale = 100
+        tax = ternary.TernaryAxesSubplot(ax=ax, scale=scale)
+
+        tax.boundary(linewidth=1.5)
+        tax.gridlines(multiple=10, color="gray", linewidth=0.5)
+
+        # Update axis labels with correct positions
+        # PostModern on lower-left
+        tax.left_corner_label("PostModern", fontsize=12, offset=0.15)
+
+        # Modern at top-center
+        tax.top_corner_label("Modern", fontsize=12, offset=0.15)
+
+        # PreModern on lower-right
+        tax.right_corner_label("PreModern", fontsize=12, offset=0.15)
 
         # Plot individual scores
         if user_scores:
