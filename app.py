@@ -95,22 +95,22 @@ user_responses = {}
 for q_key, question in questions.items():
     st.subheader(question)
     
-    # Randomise responses and add a placeholder
-    options = responses[q_key]
-    random.shuffle(options)  # Randomise responses
-    options_with_placeholder = [" "] + options  # Add placeholder
-    
-    # Render the radio button with the placeholder
+    # Add an instruction as the placeholder
+    options = ["Select an option from the list below."] + responses[q_key]
+    random.shuffle(responses[q_key])  # Randomise only the actual responses
+
+    # Render the radio button
     user_responses[q_key] = st.radio(
         "",
-        options=options_with_placeholder,
-        format_func=lambda x: "" if x == " " else x,  # Hide placeholder visually
+        options,
+        index=0,  # Default to the placeholder
         key=q_key
     )
 
     # Display a warning if the user hasn't selected a valid option
-    if user_responses[q_key] == " ":
+    if user_responses[q_key] == "Select an option from the list below.":
         st.warning(f"Please select an option for {question}.")
+
 
 # Submit button
 if st.button("Submit"):
