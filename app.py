@@ -98,39 +98,34 @@ warning_placeholder = st.empty()
 
 # Collect user responses
 user_responses = {}
+all_questions_answered = True
+
 for q_key, question in questions.items():
     st.subheader(question)
 
-    # Persistent instruction (dual-purpose message)
+    # Persistent instruction for each question
     placeholder_message = "Select an option from the list below to proceed."
-
-    # Combine the placeholder with actual responses
     options = [placeholder_message] + responses[q_key]
-    random.shuffle(responses[q_key])  # Randomise only the actual responses
-    
-    # Render the radio button with dynamic feedback
-    selected_option = st.radio(
-        "", options, index=0, key=q_key
-    )
+    random.shuffle(responses[q_key])  # Randomise the actual responses
 
-    # Save only the valid response
+    # Insert the placeholder at the top after shuffling
+    options = [placeholder_message] + responses[q_key]
+
+    # Render the radio button
+    selected_option = st.radio("", options, index=0, key=q_key)
+
+    # Check if the placeholder is still selected
     if selected_option == placeholder_message:
+        # Warning message for unanswered questions
+        st.markdown(
+            f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
+            f"padding: 10px; border-radius: 5px;'>"
+            f"⚠ Please select an option for <strong>{question}</strong>.</div>",
+            unsafe_allow_html=True,
+        )
         all_questions_answered = False  # Mark as incomplete
-        user_responses[q_key] = None
     else:
         user_responses[q_key] = selected_option
-
-# Display warning message above all questions if not all are answered
-if not all_questions_answered:
-    warning_placeholder.markdown(
-        f"<div style='color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; "
-        f"padding: 10px; border-radius: 5px;'>"
-        f"⚠ Please ensure all questions are answered before submitting.</div>",
-        unsafe_allow_html=True,
-    )
-else:
-    warning_placeholder.empty()  # Clear the warning box if all questions are answered
-
 
 # Submit button
 if st.button("Submit"):
