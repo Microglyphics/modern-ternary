@@ -26,11 +26,13 @@ class TernaryPlotter:
 
         # Plot individual scores
         if user_scores:
-            tax.scatter(user_scores, marker='o', color='blue', label="Individual Scores")
+            # Explicitly use color and marker to avoid colormapping warning
+            tax.scatter(user_scores, marker='o', color='blue', s=50, label="Individual Scores")
 
         # Plot average score if provided
         if avg_score:
-            tax.scatter([avg_score], marker='o', color='red', label="Aggregated Score")
+            # Use a different color and slightly larger marker for avg score
+            tax.scatter([avg_score], marker='*', color='red', s=200, label="Aggregated Score")
             
             # Add annotation for average score
             tax.annotate(
