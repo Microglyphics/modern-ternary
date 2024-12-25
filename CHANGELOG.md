@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2024-12-25
+### Added
+- SQLite database support
+- SQLite data viewer
+
+### Changed
+- Deprecated writing responses to CSV in favour of SQLite
+- Minor report interface modifications
+
 ## [1.0.0] - 2024-12-24
 ### Added
 - Initial release with working survey and ternary plot
