@@ -6,15 +6,16 @@ import seaborn as sns
 from typing import Dict, List
 import ast
 import os
+from pathlib import Path
 
 class SurveyDataViewer:
     def __init__(self):
-        # Get the parent directory path
-        self.parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Get the parent directory path (project root)
+        self.project_root = Path(__file__).parent.parent
         
-        # Construct full paths to data files
-        self.questions_path = os.path.join(self.parent_dir, 'questions_responses.json')
-        self.responses_path = os.path.join(self.parent_dir, 'survey_responses.csv')
+        # Construct paths
+        self.questions_path = os.path.join(self.project_root, 'src', 'data', 'questions_responses.json')
+        self.responses_path = os.path.join(self.project_root, 'survey_responses.csv')
         
         # Set up the plotting style
         sns.set_theme()
@@ -22,20 +23,30 @@ class SurveyDataViewer:
 
     def load_data(self):
         # Load questions data
-        with open(self.questions_path, 'r') as file:
-            self.questions_data = json.load(file)
-        
-        # Convert questions to DataFrame for viewing
-        self.questions_df = self.questions_to_df()
+        try:
+            with open(self.questions_path, 'r') as file:
+                self.questions_data = json.load(file)
+            
+            # Convert questions to DataFrame for viewing
+            self.questions_df = self.questions_to_df()
+        except FileNotFoundError:
+            st.error(f"Questions file not found at {self.questions_path}")
+            self.questions_data = {}
+            self.questions_df = pd.DataFrame()
         
         # Load responses if they exist
         try:
             self.responses_df = pd.read_csv(self.responses_path)
-            # Convert stored string representations back to Python objects
-            self.responses_df['responses'] = self.responses_df['responses'].apply(ast.literal_eval)
-            self.responses_df['scores'] = self.responses_df['scores'].apply(ast.literal_eval)
-            self.responses_df['avg_score'] = self.responses_df['avg_score'].apply(ast.literal_eval)
+            if not self.responses_df.empty:
+                # Check if columns exist before converting
+                if 'responses' in self.responses_df.columns:
+                    self.responses_df['responses'] = self.responses_df['responses'].apply(ast.literal_eval)
+                if 'scores' in self.responses_df.columns:
+                    self.responses_df['scores'] = self.responses_df['scores'].apply(ast.literal_eval)
+                if 'avg_score' in self.responses_df.columns:
+                    self.responses_df['avg_score'] = self.responses_df['avg_score'].apply(ast.literal_eval)
         except FileNotFoundError:
+            st.warning("No response data found yet.")
             self.responses_df = pd.DataFrame()
 
     def questions_to_df(self) -> pd.DataFrame:
