@@ -16,16 +16,3 @@ Interactive ternary chart questionnaire for exploring conceptual frameworks and 
 ## Setup
 ```bash
 pip install -r requirements.txt
-```
-
-## Usage
-Run the main survey:
-```bash
-streamlit run app.py
-```
-
-Analyze data (after collecting responses):
-```bash
-cd data_viewer
-streamlit run data_viewer.py
-```
