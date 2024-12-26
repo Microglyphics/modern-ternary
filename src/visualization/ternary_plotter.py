@@ -8,14 +8,17 @@ class TernaryPlotter:
         
     def create_plot(self, user_scores, avg_score=None):
         """
-        Create a ternary plot with user scores and optional average score
-        
+        Create a ternary plot with user scores and optional average score.
+
         Parameters:
-        user_scores: List of [premodern, modern, postmodern] scores
+        user_scores: List of [PreModern, Modern, PostModern] scores
         avg_score: Optional average score to highlight
         """
+        import ternary
+
         # Create the figure and tax
-        figure, tax = ternary.figure(scale=self.scale)
+        scale = 100  # Adjust as needed
+        figure, tax = ternary.figure(scale=scale)
         tax.boundary(linewidth=1.5)
         tax.gridlines(multiple=10, color="gray", linewidth=0.5)
 
@@ -26,27 +29,37 @@ class TernaryPlotter:
 
         # Plot individual scores
         if user_scores:
-            # Explicitly use color and marker to avoid colormapping warning
-            tax.scatter(user_scores, marker='o', color='blue', s=50, label="Individual Scores")
+            tax.scatter(
+                user_scores,
+                marker='o',
+                color='blue',  # Single color
+                s=50,
+                label="Individual Scores"
+            )
 
         # Plot average score if provided
         if avg_score:
-            # Use a different color and slightly larger marker for avg score
-            tax.scatter([avg_score], marker='*', color='red', s=200, label="Aggregated Score")
-            
-            # Add annotation for average score
+            tax.scatter(
+                [avg_score],
+                marker='*',
+                color='red',
+                s=200,
+                label="Average Score"
+            )
             tax.annotate(
-                f"PreModern: {avg_score[0]:.2f}, Modern: {avg_score[1]:.2f}, PostModern: {avg_score[2]:.2f}",
-                position=(50, -10),
-                ha="center",
+                f"Avg: {avg_score[0]:.1f}, {avg_score[1]:.1f}, {avg_score[2]:.1f}",
+                position=avg_score,
                 fontsize=10,
-                bbox=dict(boxstyle="round,pad=0.5", edgecolor="red", facecolor="white")
+                ha="center",
+                va="bottom",
+                color="red"
             )
 
         # Add legend
         tax.legend()
-        
+
         return figure
+
     
     def display_plot(self, figure):
         """Display the plot in Streamlit"""

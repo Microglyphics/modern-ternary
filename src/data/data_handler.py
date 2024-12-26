@@ -9,45 +9,43 @@ class DataHandler:
         """Initialize DataHandler with a database connection"""
         self.responses_path = responses_path
         self.max_questions = max_questions
-        self.conn = conn or sqlite3.connect(self.responses_path)  # Shared connection or new connection
+        self.conn = conn or sqlite3.connect(self.responses_path)  # Use provided or create a new connection
         self.initialize_database()
 
     def initialize_database(self):
         """Initialize database schema if it doesn't exist."""
-        with self.conn:  # Shared connection
-            cursor = self.conn.cursor()
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS responses (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    timestamp TEXT,
-                    responses TEXT,
-                    scores TEXT,
-                    aggregate_response TEXT
-                )
-            ''')
-            self.conn.commit()
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS responses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT,
+                responses TEXT,
+                scores TEXT,
+                aggregate_response TEXT
+            )
+        ''')
+        self.conn.commit()
 
     def save_response(self, responses: Dict[str, List[int]], scores: List[List[float]]):
         """Save a survey response"""
         avg_score = self.calculate_average_score(scores)
-        with self.conn:  # Shared connection
-            cursor = self.conn.cursor()
-            cursor.execute(
-                '''INSERT INTO responses 
-                (timestamp, responses, scores, aggregate_response) 
-                VALUES (?, ?, ?, ?)''',
-                (
-                    datetime.now().isoformat(),
-                    json.dumps(responses),
-                    json.dumps(scores),
-                    json.dumps(avg_score)
-                )
+        cursor = self.conn.cursor()
+        cursor.execute(
+            '''INSERT INTO responses 
+            (timestamp, responses, scores, aggregate_response) 
+            VALUES (?, ?, ?, ?)''',
+            (
+                datetime.now().isoformat(),
+                json.dumps(responses),
+                json.dumps(scores),
+                json.dumps(avg_score)
             )
-            self.conn.commit()
+        )
+        self.conn.commit()
 
     def get_responses(self, limit: int = 100):
         """Retrieve responses with flexibility"""
-        self.conn.row_factory = sqlite3.Row  # Shared connection
+        self.conn.row_factory = sqlite3.Row
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM responses ORDER BY timestamp DESC LIMIT ?", (limit,))
         rows = cursor.fetchall()
