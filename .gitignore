@@ -70,3 +70,5 @@ TernaryChartProject.code-workspace
 # Ignore images and generated charts
 ternary_chart.png
 questionnaire_responses.db
+test_streamlit.py
+src/questions/question_manager_OLD.py

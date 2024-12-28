@@ -1,38 +1,43 @@
-import streamlit as st
 import ternary
 import matplotlib.pyplot as plt
+import streamlit as st
+
+# Initialize TernaryPlotter
+# plotter = TernaryPlotter(scale=100)  # Adjust scale if necessary
 
 class TernaryPlotter:
     def __init__(self, scale=100):
         self.scale = scale
-        
+
     def create_plot(self, user_scores, avg_score=None):
         """
         Create a ternary plot with user scores and optional average score.
 
         Parameters:
-        user_scores: List of [PreModern, Modern, PostModern] scores
-        avg_score: Optional average score to highlight
+        - user_scores: List of [PreModern, Modern, PostModern] scores for each response.
+        - avg_score: Optional average score to highlight.
         """
         import ternary
 
         # Create the figure and tax
-        scale = 100  # Adjust as needed
-        figure, tax = ternary.figure(scale=scale)
+        figure, tax = ternary.figure(scale=self.scale)
         tax.boundary(linewidth=1.5)
         tax.gridlines(multiple=10, color="gray", linewidth=0.5)
 
-        # Add axis labels
-        tax.left_axis_label("PreModern", fontsize=12, offset=0.16)
-        tax.right_axis_label("Modern", fontsize=12, offset=0.16)
-        tax.bottom_axis_label("PostModern", fontsize=12, offset=0.04)
+        # Remove X-Y axis labels and ticks
+        tax.clear_matplotlib_ticks()
+
+        # Add ternary axis labels at the corners, rendered outside
+        tax.left_corner_label("PreModern", fontsize=12, offset=0.2)
+        tax.right_corner_label("Modern", fontsize=12, offset=0.2)
+        tax.top_corner_label("PostModern", fontsize=12, offset=0.2)
 
         # Plot individual scores
         if user_scores:
             tax.scatter(
                 user_scores,
                 marker='o',
-                color='blue',  # Single color
+                color='blue',
                 s=50,
                 label="Individual Scores"
             )
@@ -60,7 +65,6 @@ class TernaryPlotter:
 
         return figure
 
-    
     def display_plot(self, figure):
         """Display the plot in Streamlit"""
         st.pyplot(figure)

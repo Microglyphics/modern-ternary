@@ -3,61 +3,61 @@
     "Q1": {
       "text": "What is the source of truth?",
       "responses": [
-        {"text": "Truth is given by divine or spiritual authority.", "scores": [100, 0, 0]},
-        {"text": "Truth is discovered through empirical evidence.", "scores": [0, 100, 0]},
-        {"text": "Truth is shaped by cultural or personal perspectives.", "scores": [0, 0, 100]},
-        {"text": "Truth is primarily divine but interpreted through reason.", "scores": [50, 50, 0]},
-        {"text": "Truth is mostly objective but influenced by culture.", "scores": [25, 50, 25]}
+        {"id": "Q1R1", "text": "Truth is given by divine or spiritual authority.", "scores": [100, 0, 0]},
+        {"id": "Q1R2", "text": "Truth is discovered through empirical evidence.", "scores": [0, 100, 0]},
+        {"id": "Q1R3", "text": "Truth is shaped by cultural or personal perspectives.", "scores": [0, 0, 100]},
+        {"id": "Q1R4", "text": "Truth is primarily divine but interpreted through reason.", "scores": [50, 50, 0]},
+        {"id": "Q1R5", "text": "Truth is mostly objective but influenced by culture.", "scores": [25, 50, 25]}
       ]
     },
     "Q2": {
       "text": "What is the best way to understand the world?",
       "responses": [
-        {"text": "Understand the world through sacred traditions.", "scores": [100, 0, 0]},
-        {"text": "Understand the world by uncovering universal principles.", "scores": [0, 100, 0]},
-        {"text": "Critique and question established assumptions.", "scores": [0, 0, 100]},
-        {"text": "Sacred stories reveal truths but must align with reason.", "scores": [50, 50, 0]},
-        {"text": "Universal principles exist but are shaped by culture.", "scores": [25, 50, 25]}
+        {"id": "Q2R1", "text": "Understand the world through sacred traditions.", "scores": [100, 0, 0]},
+        {"id": "Q2R2", "text": "Understand the world by uncovering universal principles.", "scores": [0, 100, 0]},
+        {"id": "Q2R3", "text": "Critique and question established assumptions.", "scores": [0, 0, 100]},
+        {"id": "Q2R4", "text": "Sacred stories reveal truths but must align with reason.", "scores": [50, 50, 0]},
+        {"id": "Q2R5", "text": "Universal principles exist but are shaped by culture.", "scores": [25, 50, 25]}
       ]
     },
     "Q3": {
       "text": "How is knowledge best gained?",
       "responses": [
-        {"text": "Knowledge is gained through spiritual intuition.", "scores": [100, 0, 0]},
-        {"text": "Knowledge is gained through logical reasoning.", "scores": [0, 100, 0]},
-        {"text": "Knowledge is gained by questioning existing ideas.", "scores": [0, 0, 100]},
-        {"text": "Mystical insights must be balanced with reasoning.", "scores": [50, 50, 0]},
-        {"text": "Logical reasoning is essential but subjective.", "scores": [25, 50, 25]}
+        {"id": "Q3R1", "text": "Knowledge is gained through spiritual intuition.", "scores": [100, 0, 0]},
+        {"id": "Q3R2", "text": "Knowledge is gained through logical reasoning.", "scores": [0, 100, 0]},
+        {"id": "Q3R3", "text": "Knowledge is gained by questioning existing ideas.", "scores": [0, 0, 100]},
+        {"id": "Q3R4", "text": "Mystical insights must be balanced with reasoning.", "scores": [50, 50, 0]},
+        {"id": "Q3R5", "text": "Logical reasoning is essential but subjective.", "scores": [25, 50, 25]}
       ]
     },
     "Q4": {
       "text": "What is your view of the world?",
       "responses": [
-        {"text": "The world is governed by a divine cosmic order.", "scores": [100, 0, 0]},
-        {"text": "The world progresses through scientific advancements.", "scores": [0, 100, 0]},
-        {"text": "The world is a critique of traditional systems.", "scores": [0, 0, 100]},
-        {"text": "Cosmic order exists, but progress plays a role.", "scores": [50, 50, 0]},
-        {"text": "Progress must be critically examined through irony.", "scores": [25, 50, 25]}
+        {"id": "Q4R1", "text": "The world is governed by a divine cosmic order.", "scores": [100, 0, 0]},
+        {"id": "Q4R2", "text": "The world progresses through scientific advancements.", "scores": [0, 100, 0]},
+        {"id": "Q4R3", "text": "The world is a critique of traditional systems.", "scores": [0, 0, 100]},
+        {"id": "Q4R4", "text": "Cosmic order exists, but progress plays a role.", "scores": [50, 50, 0]},
+        {"id": "Q4R5", "text": "Progress must be critically examined through irony.", "scores": [25, 50, 25]}
       ]
     },
     "Q5": {
       "text": "How should societal values be oriented?",
       "responses": [
-        {"text": "Societal values follow established traditions.", "scores": [100, 0, 0]},
-        {"text": "Values are guided by objective, neutral standards.", "scores": [0, 100, 0]},
-        {"text": "Values adapt to subjective or situational contexts.", "scores": [0, 0, 100]},
-        {"text": "Respect traditions but balance with objectivity.", "scores": [50, 50, 0]},
-        {"text": "Objective standards must consider subjective contexts.", "scores": [25, 50, 25]}
+        {"id": "Q5R1", "text": "Societal values follow established traditions.", "scores": [100, 0, 0]},
+        {"id": "Q5R2", "text": "Values are guided by objective, neutral standards.", "scores": [0, 100, 0]},
+        {"id": "Q5R3", "text": "Values adapt to subjective or situational contexts.", "scores": [0, 0, 100]},
+        {"id": "Q5R4", "text": "Respect traditions but balance with objectivity.", "scores": [50, 50, 0]},
+        {"id": "Q5R5", "text": "Objective standards must consider subjective contexts.", "scores": [25, 50, 25]}
       ]
     },
     "Q6": {
       "text": "How is identity defined?",
       "responses": [
-        {"text": "Identity is defined by one's role in a community.", "scores": [100, 0, 0]},
-        {"text": "Identity is discovered through personal authenticity.", "scores": [0, 100, 0]},
-        {"text": "Identity is fluid and changes with contexts.", "scores": [0, 0, 100]},
-        {"text": "Identity is collective but allows personal expression.", "scores": [50, 50, 0]},
-        {"text": "Identity is personal but adapts to fluid contexts.", "scores": [25, 50, 25]}
+        {"id": "Q6R1", "text": "Identity is defined by one's role in a community.", "scores": [100, 0, 0]},
+        {"id": "Q6R2", "text": "Identity is discovered through personal authenticity.", "scores": [0, 100, 0]},
+        {"id": "Q6R3", "text": "Identity is fluid and changes with contexts.", "scores": [0, 0, 100]},
+        {"id": "Q6R4", "text": "Identity is collective but allows personal expression.", "scores": [50, 50, 0]},
+        {"id": "Q6R5", "text": "Identity is personal but adapts to fluid contexts.", "scores": [25, 50, 25]}
       ]
     }
   }
