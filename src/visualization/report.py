@@ -1,6 +1,6 @@
 # src/visualization/report.py
 
-from visualization.ternary_plotter import TernaryPlotter
+from .ternary_plotter import TernaryPlotter
 import matplotlib.pyplot as plt
 from typing import List
 import logging
