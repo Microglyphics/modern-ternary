@@ -4,77 +4,87 @@ from src.data.db_manager import append_record
 import streamlit as st
 import random
 
-# Initialize question manager
+# Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
-
-# Initialize ternary plotter
 plotter = TernaryPlotter(scale=100)
 
-
 def main():
-    # Determine the current page state
+    # Determine the current page
     if "page" not in st.session_state:
         st.session_state.page = "questions"  # Default page
+    if "error_triggered" not in st.session_state:
+        st.session_state.error_triggered = False
 
-    # Navigate between pages
     if st.session_state.page == "questions":
         display_questions_and_responses()
     elif st.session_state.page == "results":
         display_results_and_chart()
 
-
 def display_questions_and_responses():
     st.title("Questions and Responses")
     question_keys = question_manager.get_all_question_keys()
 
-    all_answered = True  # Flag to track if all questions are answered
+    # Ensure error state exists in session state
+    if "error_triggered" not in st.session_state:
+        st.session_state.error_triggered = False
+
+    has_errors = False  # Track if there are unanswered questions
 
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
         responses = question_manager.get_responses(q_key)
 
-        # Randomize responses (excluding the placeholder)
-        if f"{q_key}_shuffled_responses" not in st.session_state:
-            randomized_responses = random.sample(responses, len(responses))
-            st.session_state[f"{q_key}_shuffled_responses"] = [{"text": "Select an option", "r_value": None}] + randomized_responses
-        shuffled_responses = st.session_state[f"{q_key}_shuffled_responses"]
+        # Shuffle responses once and store in session state
+        if f"shuffled_responses_{q_key}" not in st.session_state:
+            st.session_state[f"shuffled_responses_{q_key}"] = [
+                {"text": "Select an option", "r_value": None}
+            ] + random.sample(responses, len(responses))
 
-        # Unique key for each question
-        key = f"radio_{q_key}"
+        shuffled_responses = st.session_state[f"shuffled_responses_{q_key}"]
 
-        st.subheader(question_text)
+        # Check if the question has been answered
+        is_valid = st.session_state.get(f"{q_key}_r_value") is not None
 
-        # Initialize session state if not already set
-        if f"{q_key}_r_value" not in st.session_state:
-            st.session_state[f"{q_key}_r_value"] = None
+        # Highlight unanswered questions only after validation
+        if not is_valid and st.session_state.error_triggered:
+            st.markdown(
+                f'<div style="background-color: yellow; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 26px; font-family: Roboto, sans-serif;">{question_text}</div>',
+                unsafe_allow_html=True
+            )
+            has_errors = True
+        else:
+            st.subheader(question_text)
 
-        # Display the radio button for responses
+        # Render radio buttons for the question
         response_r_value = st.radio(
-            "Select your response:",
+            "",
             options=[r["text"] for r in shuffled_responses],
-            index=0 if st.session_state[f"{q_key}_r_value"] is None else
+            index=0 if st.session_state.get(f"{q_key}_r_value") is None else
             [r["text"] for r in shuffled_responses].index(
                 next(r["text"] for r in shuffled_responses if r["r_value"] == st.session_state[f"{q_key}_r_value"])
             ),
-            key=key  # Use unique key for the question
+            key=f"radio_{q_key}",
         )
 
         # Update session state with the selected response
-        selected_response = next(r for r in shuffled_responses if r["text"] == response_r_value)
-        st.session_state[f"{q_key}_r_value"] = selected_response["r_value"]
+        selected_response = next((r for r in shuffled_responses if r["text"] == response_r_value), None)
+        st.session_state[f"{q_key}_r_value"] = selected_response["r_value"] if selected_response else None
 
-        # Check if a valid response is selected (not the placeholder)
-        if selected_response["r_value"] is None:
-            all_answered = False
-
-    # Add navigation to results
+    # Button to validate and navigate
     if st.button("Review Results"):
-        if all_answered:
-            st.session_state.page = "results"  # Navigate to the results page
-            st.query_params = {"page": "results"}  # Update query parameters
-            st.rerun()  # Force app re-run
+        # Check if any questions are unanswered
+        has_errors = any(
+            not st.session_state.get(f"{q_key}_r_value") for q_key in question_keys
+        )
+        st.session_state.error_triggered = has_errors
+
+        if has_errors:
+            # Show error only when the button is clicked
+            st.error("Some questions are unanswered. Please scroll up and complete them before proceeding.")
         else:
-            st.error("Please answer all questions before proceeding.")
+            # Navigate to results page if no errors
+            st.session_state.page = "results"
+            st.rerun()
 
 def display_results_and_chart():
     st.title("Your Aggregate Results")
@@ -127,8 +137,7 @@ def display_results_and_chart():
     with col1:
         if st.button("Back to Questions"):
             st.session_state.page = "questions"
-            st.query_params = {"page": "questions"}  # Update query parameters
-            st.rerun()  # Force app re-run
+            st.rerun()
     with col2:
         if st.button("Submit Survey"):
             append_record(
@@ -144,7 +153,6 @@ def display_results_and_chart():
                 session_id="test_session"
             )
             st.success("Thank you for completing the survey! Your responses have been recorded.")
-
 
 if __name__ == "__main__":
     main()
