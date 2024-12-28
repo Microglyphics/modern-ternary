@@ -27,6 +27,8 @@ def display_questions_and_responses():
     st.title("Questions and Responses")
     question_keys = question_manager.get_all_question_keys()
 
+    all_answered = True  # Flag to track if all questions are answered
+
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
         responses = question_manager.get_responses(q_key)
@@ -37,7 +39,7 @@ def display_questions_and_responses():
             st.session_state[f"{q_key}_shuffled_responses"] = [{"text": "Select an option", "r_value": None}] + randomized_responses
         shuffled_responses = st.session_state[f"{q_key}_shuffled_responses"]
 
-        # Generate a unique key for the question
+        # Unique key for each question
         key = f"radio_{q_key}"
 
         st.subheader(question_text)
@@ -61,12 +63,18 @@ def display_questions_and_responses():
         selected_response = next(r for r in shuffled_responses if r["text"] == response_r_value)
         st.session_state[f"{q_key}_r_value"] = selected_response["r_value"]
 
+        # Check if a valid response is selected (not the placeholder)
+        if selected_response["r_value"] is None:
+            all_answered = False
+
     # Add navigation to results
     if st.button("Review Results"):
-        st.session_state.page = "results"  # Navigate to the results page
-        st.query_params = {"page": "results"}  # Update query parameters
-        st.rerun()  # Force app re-run
-
+        if all_answered:
+            st.session_state.page = "results"  # Navigate to the results page
+            st.query_params = {"page": "results"}  # Update query parameters
+            st.rerun()  # Force app re-run
+        else:
+            st.error("Please answer all questions before proceeding.")
 
 def display_results_and_chart():
     st.title("Your Aggregate Results")
