@@ -28,9 +28,9 @@ class TernaryPlotter:
         tax.clear_matplotlib_ticks()
 
         # Add ternary axis labels at the corners, rendered outside
-        tax.left_corner_label("PreModern", fontsize=12, offset=0.2)
-        tax.right_corner_label("Modern", fontsize=12, offset=0.2)
-        tax.top_corner_label("PostModern", fontsize=12, offset=0.2)
+        tax.left_corner_label("PostModern", fontsize=12, offset=0.2)
+        tax.right_corner_label("PreModern", fontsize=12, offset=0.2)
+        tax.top_corner_label("Modern", fontsize=12, offset=0.2)
 
         # Plot individual scores
         if user_scores:
