@@ -1,104 +1,88 @@
+from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
-from src.data.db_manager import initialize_database, append_record  # Import database functions
-from src.visualization.ternary_plotter import TernaryPlotter  # Import TernaryPlotter
+from src.data.db_manager import append_record
 import streamlit as st
+import random
 
-# Initialize database at app startup
-initialize_database()
-
+# Initialize question manager
 question_manager = QuestionManager("src/data/questions_responses.json")
 
+# Initialize ternary plotter
+plotter = TernaryPlotter(scale=100)
+
+
 def main():
+    # Determine the current page state
     if "page" not in st.session_state:
-        st.session_state.page = "welcome"
-    if "current_question_index" not in st.session_state:
-        st.session_state.current_question_index = 0
-    if "responses" not in st.session_state:
-        st.session_state.responses = {}
+        st.session_state.page = "questions"  # Default page
 
-    if st.session_state.page == "welcome":
-        display_welcome_page()
-    elif st.session_state.page == "question":
-        display_question_page()
-    elif st.session_state.page == "review":
-        display_review_page()
+    # Navigate between pages
+    if st.session_state.page == "questions":
+        display_questions_and_responses()
+    elif st.session_state.page == "results":
+        display_results_and_chart()
 
-def display_welcome_page():
-    st.title("Welcome to the Worldview Survey")
-    st.write("Lorem Ipsum text explaining the survey. Click below to start.")
-    if st.button("Start Survey"):
-        st.session_state.page = "question"
-        st.rerun()
 
-def display_question_page():
-    # Ensure current_question_index is initialized
-    if "current_question_index" not in st.session_state:
-        st.session_state["current_question_index"] = 0
-
-    current_idx = st.session_state["current_question_index"]
+def display_questions_and_responses():
+    st.title("Questions and Responses")
     question_keys = question_manager.get_all_question_keys()
 
-    # Prevent out-of-range access
-    if current_idx >= len(question_keys):
-        st.session_state.page = "review"  # Transition to review page
-        st.rerun()
+    for q_key in question_keys:
+        question_text = question_manager.get_question_text(q_key)
+        responses = question_manager.get_responses(q_key)
 
-    q_key = question_keys[current_idx]  # Safe access after boundary check
-    question_text = question_manager.get_question_text(q_key)
-    options = question_manager.get_randomized_responses(q_key, st.session_state)
+        # Randomize responses (excluding the placeholder)
+        if f"{q_key}_shuffled_responses" not in st.session_state:
+            randomized_responses = random.sample(responses, len(responses))
+            st.session_state[f"{q_key}_shuffled_responses"] = [{"text": "Select an option", "r_value": None}] + randomized_responses
+        shuffled_responses = st.session_state[f"{q_key}_shuffled_responses"]
 
-    # Display the question
-    st.header(question_text)
-    selected_option = st.radio(
-        "Select an option:",
-        options,
-        format_func=lambda x: x["text"],  # Display the text of each response
-        index=next(
-            (i for i, opt in enumerate(options) if opt["text"] == st.session_state.get(f"{q_key}_answer", {}).get("text", "Please select a response")),
-            0
-        ),
-        key=f"{q_key}_selection"
-    )
+        # Generate a unique key for the question
+        key = f"radio_{q_key}"
 
-    if selected_option["text"] != "Please select a response":
-        st.session_state[f"{q_key}_answer"] = selected_option
-        st.session_state[f"{q_key}_r_value"] = selected_option["r_value"]
+        st.subheader(question_text)
 
-    # Navigation Buttons
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Back"):
-            if current_idx > 0:
-                st.session_state["current_question_index"] -= 1
-            else:
-                st.session_state.page = "welcome"
-            st.rerun()
-    with col2:
-        if st.button("Next"):
-            if selected_option["text"] == "Please select a response":
-                st.error("Please select a valid response to proceed.")
-            else:
-                st.session_state["current_question_index"] += 1
-                st.rerun()
+        # Initialize session state if not already set
+        if f"{q_key}_r_value" not in st.session_state:
+            st.session_state[f"{q_key}_r_value"] = None
 
-def display_review_page():
-    from src.visualization.ternary_plotter import TernaryPlotter
-    plotter = TernaryPlotter(scale=100)
+        # Display the radio button for responses
+        response_r_value = st.radio(
+            "Select your response:",
+            options=[r["text"] for r in shuffled_responses],
+            index=0 if st.session_state[f"{q_key}_r_value"] is None else
+            [r["text"] for r in shuffled_responses].index(
+                next(r["text"] for r in shuffled_responses if r["r_value"] == st.session_state[f"{q_key}_r_value"])
+            ),
+            key=key  # Use unique key for the question
+        )
 
+        # Update session state with the selected response
+        selected_response = next(r for r in shuffled_responses if r["text"] == response_r_value)
+        st.session_state[f"{q_key}_r_value"] = selected_response["r_value"]
+
+    # Add navigation to results
+    if st.button("Review Results"):
+        st.session_state.page = "results"  # Navigate to the results page
+        st.query_params = {"page": "results"}  # Update query parameters
+        st.rerun()  # Force app re-run
+
+
+def display_results_and_chart():
     st.title("Your Aggregate Results")
     question_keys = question_manager.get_all_question_keys()
 
-    responses = {}
+    responses_summary = {}
     individual_scores = []  # Store individual scores
     n1, n2, n3 = 0, 0, 0  # Initialize aggregate scores
 
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
         response_r_value = st.session_state.get(f"{q_key}_r_value", None)
+        responses = question_manager.get_responses(q_key)
 
         if response_r_value is not None:
-            response = question_manager.get_responses(q_key)
-            selected_response = next((r for r in response if r["r_value"] == response_r_value), None)
+            selected_response = next((r for r in responses if r["r_value"] == response_r_value), None)
             if selected_response:
                 response_text = selected_response["text"]
                 scores = selected_response["scores"]
@@ -109,52 +93,43 @@ def display_review_page():
             else:
                 response_text = "No valid response found."
         else:
-            response_text = "No response"
+            response_text = "No response selected."
 
-        responses[q_key] = response_text
+        # Add the response to the summary
+        responses_summary[q_key] = (question_text, response_text)
 
     # Normalize aggregated scores for ternary plot
     total = n1 + n2 + n3
     avg_score = [n1 / total * 100, n2 / total * 100, n3 / total * 100] if total > 0 else None
 
-    # Ternary Plot Display at the Top
+    # Display ternary plot
     if individual_scores and avg_score:
         chart = plotter.create_plot(user_scores=individual_scores, avg_score=avg_score)
         plotter.display_plot(chart)
     else:
         st.write("No sufficient data to generate a ternary chart.")
 
-    # Display Individual Responses
     st.header("Review Your Responses")
-    for q_key in question_keys:
-        question_text = question_manager.get_question_text(q_key)
-        response_r_value = st.session_state.get(f"{q_key}_r_value", None)
-
-        if response_r_value is not None:
-            response = question_manager.get_responses(q_key)
-            selected_response = next((r for r in response if r["r_value"] == response_r_value), None)
-            if selected_response:
-                response_text = selected_response["text"]
-            else:
-                response_text = "No valid response found."
-        else:
-            response_text = "No response"
-
+    for q_key, (question_text, response_text) in responses_summary.items():
         st.subheader(question_text)
-        st.write(f"Your Answer: {response_text}")
+        st.write(f"▶ {response_text}")
 
-    # Navigation Buttons
+    # Add navigation buttons
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Back"):
-            st.session_state.page = "question"
-            st.session_state.current_question_index = len(question_keys) - 1
-            st.rerun()
+        if st.button("Back to Questions"):
+            st.session_state.page = "questions"
+            st.query_params = {"page": "questions"}  # Update query parameters
+            st.rerun()  # Force app re-run
     with col2:
-        if st.button("Submit"):
+        if st.button("Submit Survey"):
             append_record(
-                q1=responses["Q1"], q2=responses["Q2"], q3=responses["Q3"],
-                q4=responses["Q4"], q5=responses["Q5"], q6=responses["Q6"],
+                q1=responses_summary.get("Q1", ("", "No response"))[1],
+                q2=responses_summary.get("Q2", ("", "No response"))[1],
+                q3=responses_summary.get("Q3", ("", "No response"))[1],
+                q4=responses_summary.get("Q4", ("", "No response"))[1],
+                q5=responses_summary.get("Q5", ("", "No response"))[1],
+                q6=responses_summary.get("Q6", ("", "No response"))[1],
                 n1=n1, n2=n2, n3=n3,
                 plot_x=n2 / total * 100 if total > 0 else 0,
                 plot_y=n3 / total * 100 if total > 0 else 0,
@@ -162,15 +137,6 @@ def display_review_page():
             )
             st.success("Thank you for completing the survey! Your responses have been recorded.")
 
-
-# Placeholder aggregate functions
-def calculate_aggregates(responses):
-    # Replace this with actual logic
-    return 10, 20, 30
-
-def calculate_plot_coordinates(n1, n2, n3):
-    # Replace this with actual logic
-    return 12.34, 56.78
 
 if __name__ == "__main__":
     main()
