@@ -21,20 +21,19 @@ def main():
         display_results_and_chart()
 
 def display_questions_and_responses():
-    st.title("Questions and Responses")
+    st.title("Modernity Worldview Survey")
     question_keys = question_manager.get_all_question_keys()
 
-    # Ensure error state exists in session state
-    if "error_triggered" not in st.session_state:
-        st.session_state.error_triggered = False
+    # Initialize validation state if not exists
+    if "validation_attempted" not in st.session_state:
+        st.session_state.validation_attempted = False
 
-    has_errors = False  # Track if there are unanswered questions
-
+    # Display questions
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
         responses = question_manager.get_responses(q_key)
 
-        # Shuffle responses once and store in session state
+        # Initialize shuffled responses
         if f"shuffled_responses_{q_key}" not in st.session_state:
             st.session_state[f"shuffled_responses_{q_key}"] = [
                 {"text": "Select an option", "r_value": None}
@@ -42,20 +41,19 @@ def display_questions_and_responses():
 
         shuffled_responses = st.session_state[f"shuffled_responses_{q_key}"]
 
-        # Check if the question has been answered
-        is_valid = st.session_state.get(f"{q_key}_r_value") is not None
+        # Check if question is answered
+        is_answered = st.session_state.get(f"{q_key}_r_value") is not None
 
-        # Highlight unanswered questions only after validation
-        if not is_valid and st.session_state.error_triggered:
+        # Apply highlighting if validation was attempted and question is unanswered
+        if st.session_state.validation_attempted and not is_answered:
             st.markdown(
                 f'<div style="background-color: yellow; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 26px; font-family: Roboto, sans-serif;">{question_text}</div>',
                 unsafe_allow_html=True
             )
-            has_errors = True
         else:
             st.subheader(question_text)
 
-        # Render radio buttons for the question
+        # Render radio buttons
         response_r_value = st.radio(
             "",
             options=[r["text"] for r in shuffled_responses],
@@ -66,25 +64,29 @@ def display_questions_and_responses():
             key=f"radio_{q_key}",
         )
 
-        # Update session state with the selected response
+        # Update session state with selection
         selected_response = next((r for r in shuffled_responses if r["text"] == response_r_value), None)
         st.session_state[f"{q_key}_r_value"] = selected_response["r_value"] if selected_response else None
 
-    # Button to validate and navigate
+    # Review Results button and error message at the bottom together
     if st.button("Review Results"):
-        # Check if any questions are unanswered
-        has_errors = any(
+        st.session_state.validation_attempted = True
+        has_unanswered = any(
             not st.session_state.get(f"{q_key}_r_value") for q_key in question_keys
         )
-        st.session_state.error_triggered = has_errors
-
-        if has_errors:
-            # Show error only when the button is clicked
-            st.error("Some questions are unanswered. Please scroll up and complete them before proceeding.")
+        if has_unanswered:
+            st.rerun()
         else:
-            # Navigate to results page if no errors
             st.session_state.page = "results"
             st.rerun()
+
+    # Show error message right after the button if there are unanswered questions
+    if st.session_state.validation_attempted:
+        has_unanswered = any(
+            not st.session_state.get(f"{q_key}_r_value") for q_key in question_keys
+        )
+        if has_unanswered:
+            st.error("Some questions are unanswered. Please scroll up and complete them before proceeding.")
 
 def display_results_and_chart():
     st.title("Your Aggregate Results")
