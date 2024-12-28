@@ -124,3 +124,4 @@ TernaryChartProject/
   - Enhance the `ternary_plotter` module with advanced charting features.
 - **Web Deployment**:
   - Deploy the project as a fully interactive web application.
+
