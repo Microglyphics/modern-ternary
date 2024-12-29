@@ -18,9 +18,6 @@ An interactive ternary chart application designed for exploring conceptual frame
 - **`sqlite_utils.py`**: Provides utility functions for interacting with SQLite.
 
 ### **Survey Logic** (`src/core`)
-- **`survey_logic.py`**: Core logic for handling survey questions and flow.
-
-### **Question Management** (`src/questions`)
 - **`question_manager.py`**: Handles question configurations and mappings between questions and responses.
 
 ### **User Interface** (`src/ui`)
@@ -43,20 +40,21 @@ TernaryChartProject/
 ├── src/
 │   ├── core/
 │   │   ├── __init__.py
-│   │   └── survey_logic.py       # Core survey logic
+│   │   └── question_manager.py   # Core survey logic
 │   ├── data/
 │   │   ├── __init__.py
-│   │   ├── data_handler.py       # Database handling logic
+│   │   ├── db_manager.py         # Database handling logic
 │   │   ├── questions_responses.json # Sample questions and responses
 │   │   └── sqlite_utils.py       # SQLite utility functions
-│   ├── questions/
-│   │   ├── __init__.py
-│   │   └── question_manager.py   # Question management logic
+|   |   └── survey_results.db     # SQLite DB file
 │   ├── ui/
 │   │   ├── __init__.py
 │   │   └── streamlit_app.py      # Streamlit user interface
 │   └── visualization/
 │       ├── __init__.py
+│       └── red_star.png          # image for chart output
+│       └── report.py             # May be redundant to results page
+│       └── results_page.py       # formatted output page
 │       └── ternary_plotter.py    # Ternary chart plotting
 ├── tests/
 │   ├── test_data/
