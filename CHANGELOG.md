@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2024-12-28
+### Added
+- No Adds
+
+### Changed
+- Cleaned up Survey page and error handling
+- Cleaned up Results page, specifically ternary chart presentment
+- Removed Sidebar and pages
+
+### Technical
+- Removed deprecated files
+
+## [1.1.1] - 2024-12-27
+
+### Changed
+- Deprecated writing responses to CSV in favour of SQLite
+- Minor report interface modifications
+
 ## [1.1.0] - 2024-12-25
 ### Added
 - SQLite database support
