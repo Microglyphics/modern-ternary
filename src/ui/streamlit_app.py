@@ -1,3 +1,4 @@
+# src/ui/streamlit_app.py
 from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
 from src.data.db_manager import append_record
@@ -7,18 +8,6 @@ import random
 # Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
 plotter = TernaryPlotter(scale=100)
-
-def main():
-    # Determine the current page
-    if "page" not in st.session_state:
-        st.session_state.page = "questions"  # Default page
-    if "error_triggered" not in st.session_state:
-        st.session_state.error_triggered = False
-
-    if st.session_state.page == "questions":
-        display_questions_and_responses()
-    elif st.session_state.page == "results":
-        display_results_and_chart()
 
 def display_questions_and_responses():
     st.title("Modernity Worldview Survey")
@@ -142,6 +131,7 @@ def display_results_and_chart():
             st.rerun()
     with col2:
         if st.button("Submit Survey"):
+            # Save to database
             append_record(
                 q1=responses_summary.get("Q1", ("", "No response"))[1],
                 q2=responses_summary.get("Q2", ("", "No response"))[1],
@@ -154,7 +144,57 @@ def display_results_and_chart():
                 plot_y=n3 / total * 100 if total > 0 else 0,
                 session_id="test_session"
             )
+            
+            # Store the necessary data in session state for detailed results
+            st.session_state.final_scores = avg_score
+            st.session_state.category_responses = {
+                "Source of Truth": responses_summary.get("Q1", ("", "No response"))[1],
+                "Understanding the World": responses_summary.get("Q2", ("", "No response"))[1],
+                "Knowledge Acquisition": responses_summary.get("Q3", ("", "No response"))[1],
+                "World View": responses_summary.get("Q4", ("", "No response"))[1],
+                "Societal Values": responses_summary.get("Q5", ("", "No response"))[1],
+                "Identity": responses_summary.get("Q6", ("", "No response"))[1]
+            }
+            
             st.success("Thank you for completing the survey! Your responses have been recorded.")
+            st.session_state.page = "detailed_results"
+            st.rerun()
+
+def display_detailed_results():
+    """Display the detailed results page"""
+    if not hasattr(st.session_state, 'final_scores') or not hasattr(st.session_state, 'category_responses'):
+        st.error("No survey data found. Please complete the survey first.")
+        if st.button("Return to Survey"):
+            st.session_state.page = "questions"
+            st.rerun()
+        return
+
+    from src.visualization.worldview_results import display_results_page
+    display_results_page(
+        st.session_state.final_scores,
+        st.session_state.category_responses
+    )
+    
+    if st.button("Start New Survey"):
+        # Clear session state
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.session_state.page = "questions"
+        st.rerun()
+
+def main():
+    # Determine the current page
+    if "page" not in st.session_state:
+        st.session_state.page = "questions"  # Default page
+    if "error_triggered" not in st.session_state:
+        st.session_state.error_triggered = False
+
+    if st.session_state.page == "questions":
+        display_questions_and_responses()
+    elif st.session_state.page == "results":
+        display_results_and_chart()
+    elif st.session_state.page == "detailed_results":
+        display_detailed_results()
 
 if __name__ == "__main__":
     main()
