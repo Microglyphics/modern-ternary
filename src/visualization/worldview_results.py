@@ -7,6 +7,12 @@ from typing import Dict, List
 import json
 from pathlib import Path
 
+# Add the cached function at module level
+@st.cache_data
+def get_pdf_content(scores_in, responses_in):
+    from .pdf_generator import generate_survey_report
+    return generate_survey_report(scores_in, responses_in)
+
 class ResponseTemplateManager:
     """Manages response templates for different worldview categories"""
     
@@ -28,12 +34,6 @@ class ResponseTemplateManager:
         """
         Determine the perspective type based on score distribution.
         Uses PerspectiveAnalyzer for sophisticated analysis.
-        
-        Args:
-            scores: List of [PreModern, Modern, PostModern] percentages
-        
-        Returns:
-            String indicating the perspective type
         """
         analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
         
@@ -64,23 +64,19 @@ class ResponseTemplateManager:
 def display_results_page(scores: List[float], category_responses: Dict[str, str], plotter=None):
     """
     Display the complete results page with template responses
-    
-    Args:
-        scores: List of [PreModern, Modern, PostModern] percentages
-        category_responses: Dictionary of category-response pairs
-        plotter: Optional TernaryPlotter instance
     """
     template_manager = ResponseTemplateManager()
-    analyzer = PerspectiveAnalyzer()
     
     # High-level Summary Section
     st.title("Worldview Analysis")
     
+    # Get perspective analysis
     analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
     description = PerspectiveAnalyzer.get_perspective_description(analysis)
     
+    # Display overall perspective
     st.header("Overall Perspective")
-    st.subheader(description)
+    st.markdown(f"**{description}**")
     
     st.write(f"""
     PreModern: {scores[0]:.1f}%  
@@ -112,12 +108,10 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
             st.write(user_response)
         
         st.markdown("---")
-    
+
     # Add PDF download button
-    from .pdf_generator import generate_survey_report
-    
     try:
-        pdf_content = generate_survey_report(scores, category_responses)
+        pdf_content = get_pdf_content(scores, category_responses)
         st.download_button(
             label="Download Report as PDF",
             data=pdf_content,
@@ -126,3 +120,6 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
         )
     except Exception as e:
         st.error(f"Error generating PDF report: {e}")
+
+# Make sure we're explicitly exporting the display_results_page function
+__all__ = ['display_results_page']
