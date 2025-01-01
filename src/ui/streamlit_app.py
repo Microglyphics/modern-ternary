@@ -1,14 +1,17 @@
 # src/ui/streamlit_app.py
+
+import streamlit as st
 from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
 from src.data.db_manager import append_record
-import streamlit as st
+from src.visualization.worldview_results import display_results_page
 import random
 
 # Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
 plotter = TernaryPlotter(scale=100)
 
+# Rest of your code remains the same...
 def display_questions_and_responses():
     st.title("Modernity Worldview Survey")
     question_keys = question_manager.get_all_question_keys()
@@ -78,7 +81,7 @@ def display_questions_and_responses():
             st.error("Some questions are unanswered. Please scroll up and complete them before proceeding.")
 
 def display_results_and_chart():
-    st.title("Your Aggregate Results")
+    st.title("Review Survey Results")
     question_keys = question_manager.get_all_question_keys()
 
     responses_summary = {}
@@ -111,7 +114,7 @@ def display_results_and_chart():
     total = n1 + n2 + n3
     avg_score = [n1 / total * 100, n2 / total * 100, n3 / total * 100] if total > 0 else None
 
-    # Display ternary plot
+    # Display ternary plot if we have valid scores
     if individual_scores and avg_score:
         chart = plotter.create_plot(user_scores=individual_scores, avg_score=avg_score)
         plotter.display_plot(chart)
@@ -130,22 +133,8 @@ def display_results_and_chart():
             st.session_state.page = "questions"
             st.rerun()
     with col2:
-        if st.button("Submit Survey"):
-            # Save to database
-            append_record(
-                q1=responses_summary.get("Q1", ("", "No response"))[1],
-                q2=responses_summary.get("Q2", ("", "No response"))[1],
-                q3=responses_summary.get("Q3", ("", "No response"))[1],
-                q4=responses_summary.get("Q4", ("", "No response"))[1],
-                q5=responses_summary.get("Q5", ("", "No response"))[1],
-                q6=responses_summary.get("Q6", ("", "No response"))[1],
-                n1=n1, n2=n2, n3=n3,
-                plot_x=n2 / total * 100 if total > 0 else 0,
-                plot_y=n3 / total * 100 if total > 0 else 0,
-                session_id="test_session"
-            )
-            
-            # Store the necessary data in session state for detailed results
+        if st.button("View Detailed Analysis"):
+            # Store data for detailed results
             st.session_state.final_scores = avg_score
             st.session_state.category_responses = {
                 "Source of Truth": responses_summary.get("Q1", ("", "No response"))[1],
@@ -155,8 +144,6 @@ def display_results_and_chart():
                 "Societal Values": responses_summary.get("Q5", ("", "No response"))[1],
                 "Identity": responses_summary.get("Q6", ("", "No response"))[1]
             }
-            
-            st.success("Thank you for completing the survey! Your responses have been recorded.")
             st.session_state.page = "detailed_results"
             st.rerun()
 
@@ -169,7 +156,6 @@ def display_detailed_results():
             st.rerun()
         return
 
-    from src.visualization.worldview_results import display_results_page
     display_results_page(
         st.session_state.final_scores,
         st.session_state.category_responses
