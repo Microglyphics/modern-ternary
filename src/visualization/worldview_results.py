@@ -1,18 +1,28 @@
 # src/visualization/worldview_results.py
 
+# At the top of worldview_results.py
 import streamlit as st
 from .ternary_plotter import TernaryPlotter
 from .perspective_analyzer import PerspectiveAnalyzer
 from typing import Dict, List
 import json
 from pathlib import Path
+import time
+import logging
 
-# Add the cached function at module level
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 @st.cache_data
 def get_pdf_content(scores_in, responses_in):
     from .pdf_generator import generate_survey_report
-    return generate_survey_report(scores_in, responses_in)
-
+    start_time = time.time()
+    logger.debug("Starting PDF generation...")
+    result = generate_survey_report(scores_in, responses_in)
+    end_time = time.time()
+    logger.debug(f"PDF generation took {end_time - start_time:.2f} seconds")
+    return result
 class ResponseTemplateManager:
     """Manages response templates for different worldview categories"""
     
