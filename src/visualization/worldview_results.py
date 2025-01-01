@@ -112,3 +112,17 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
             st.write(user_response)
         
         st.markdown("---")
+    
+    # Add PDF download button
+    from .pdf_generator import generate_survey_report
+    
+    try:
+        pdf_content = generate_survey_report(scores, category_responses)
+        st.download_button(
+            label="Download Report as PDF",
+            data=pdf_content,
+            file_name="worldview_analysis.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.error(f"Error generating PDF report: {e}")
