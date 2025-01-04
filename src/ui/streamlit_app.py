@@ -136,6 +136,7 @@ def display_results_and_chart():
         if st.button("View Detailed Analysis"):
             # Store data for detailed results
             st.session_state.final_scores = avg_score
+            st.session_state.individual_scores = individual_scores
             st.session_state.category_responses = {
                 "Source of Truth": responses_summary.get("Q1", ("", "No response"))[1],
                 "Understanding the World": responses_summary.get("Q2", ("", "No response"))[1],
@@ -149,7 +150,7 @@ def display_results_and_chart():
 
 def display_detailed_results():
     """Display the detailed results page"""
-    if not hasattr(st.session_state, 'final_scores') or not hasattr(st.session_state, 'category_responses'):
+    if not hasattr(st.session_state, 'final_scores'):
         st.error("No survey data found. Please complete the survey first.")
         if st.button("Return to Survey"):
             st.session_state.page = "questions"
@@ -158,7 +159,8 @@ def display_detailed_results():
 
     display_results_page(
         st.session_state.final_scores,
-        st.session_state.category_responses
+        st.session_state.category_responses,
+        getattr(st.session_state, 'individual_scores', None)
     )
     
     if st.button("Start New Survey"):
