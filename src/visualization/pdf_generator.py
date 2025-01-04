@@ -21,12 +21,43 @@ class SurveyPDFReport:
         self.pdf.set_left_margin(15)
         self.pdf.set_right_margin(15)
         self.plotter = TernaryPlotter()
+        
+    def add_first_page_footer(self):
+        """Add footer text to the first page"""
+        # Calculate position for footer (bottom of page)
+        footer_y = self.pdf.h - 30  # 30mm from bottom
+        
+        # Save current position
+        current_y = self.pdf.get_y()
+        
+        # Move to footer position
+        self.pdf.set_y(footer_y)
+        
+        # Add disclaimer with word wrap
+        self.pdf.set_font("Arial", style="I", size=10)
+        self.pdf.multi_cell(0, 5, 
+            txt="The Worldview Analysis is not a scientific survey. It is designed as an experiment to provide directional insights.",
+            align='L'
+        )
+        
+        self.pdf.ln(3)  # Small gap between texts
+        
+        # Add blog URL and copyright
+        self.pdf.set_font("Arial", size=10)
+        self.pdf.multi_cell(0, 5,
+            txt="For more information, visit http://philosophics.blog. All Rights Reserved © 2025 Bry Willis",
+            align='L'
+        )
+        
+        # Restore previous position
+        self.pdf.set_y(current_y)
 
     def add_title(self):
         """Add title to the PDF"""
         self.pdf.set_font("Arial", style="B", size=24)
-        self.pdf.cell(0, 15, txt="Worldview Analysis", ln=True)
+        self.pdf.cell(0, 15, txt="Modernity Worldview Analysis", ln=True)
         self.pdf.ln(10)
+        self.add_first_page_footer()
 
     def add_perspective_summary(self, scores: list):
         """Add perspective summary section"""
@@ -35,8 +66,8 @@ class SurveyPDFReport:
         description = PerspectiveAnalyzer.get_perspective_description(analysis)
         
         # Add perspective header
-        self.pdf.set_font("Arial", style="B", size=18)
-        self.pdf.cell(0, 12, txt="Overall Perspective", ln=True)
+        self.pdf.set_font("Arial",size=14)
+        self.pdf.cell(0, 12, txt="Based on your survey responses, your modernity worldview perspective is:", ln=True)
         self.pdf.ln(5)
         
         # Add description
@@ -57,10 +88,10 @@ class SurveyPDFReport:
                 avg_score=scores
             )
             
-            # Save to temporary file with high DPI for quality
+            # Save to temporary file with reduced DPI for faster generation
             with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp_file:
                 temp_path = tmp_file.name
-                chart.savefig(temp_path, format='png', dpi=300, bbox_inches='tight')
+                chart.savefig(temp_path, format='png', dpi=150, bbox_inches='tight')
                 
                 # Add to PDF with consistent dimensions for Letter size
                 plot_width = 180
@@ -68,7 +99,6 @@ class SurveyPDFReport:
                 x_offset = (215.9 - plot_width) / 2  # Center on Letter page
                 self.pdf.image(temp_path, x=x_offset, w=plot_width, h=plot_height)
             
-            # Cleanup
             os.unlink(temp_path)
             chart.clear()
             
@@ -80,6 +110,9 @@ class SurveyPDFReport:
 
     def add_category_analysis(self, scores: list, category_responses: dict):
         """Add the detailed category analysis section"""
+        # Force new page for Category Analysis
+        self.pdf.add_page()
+        
         from .perspective_analyzer import PerspectiveAnalyzer
         analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
         perspective_type = analysis['primary']
@@ -89,7 +122,7 @@ class SurveyPDFReport:
             perspective_type = 'Modern-Balanced'
 
         self.pdf.set_font("Arial", style="B", size=18)
-        self.pdf.cell(0, 12, txt="Category Analysis", ln=True)
+        self.pdf.cell(0, 12, txt="Worldview Category Analysis", ln=True)
         self.pdf.ln(5)
 
         # Load response templates

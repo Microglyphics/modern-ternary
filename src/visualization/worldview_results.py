@@ -1,28 +1,17 @@
 # src/visualization/worldview_results.py
 
-# At the top of worldview_results.py
 import streamlit as st
 from .ternary_plotter import TernaryPlotter
 from .perspective_analyzer import PerspectiveAnalyzer
 from typing import Dict, List
 import json
 from pathlib import Path
-import time
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@st.cache_data
-def get_pdf_content(scores_in, responses_in, individual_scores_in=None):
-    from .pdf_generator import generate_survey_report
-    start_time = time.time()
-    logger.debug("Starting PDF generation...")
-    result = generate_survey_report(scores_in, responses_in, individual_scores_in)
-    end_time = time.time()
-    logger.debug(f"PDF generation took {end_time - start_time:.2f} seconds")
-    return result
 class ResponseTemplateManager:
     """Manages response templates for different worldview categories"""
     
@@ -43,19 +32,15 @@ class ResponseTemplateManager:
     def get_perspective_type(self, scores: List[float]) -> str:
         """
         Determine the perspective type based on score distribution.
-        Uses PerspectiveAnalyzer for sophisticated analysis.
         """
         analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
         
-        # For template selection, we'll use a simplified mapping
         if analysis['strength'] == 'Mixed':
-            return "Modern-Balanced"  # Default template for mixed perspectives
-        
-        # For strong or moderate with no secondary, use primary
+            return "Modern-Balanced"
+            
         if analysis['strength'] == 'Strong' or not analysis['secondary']:
             return analysis['primary']
             
-        # For moderate with secondary influence
         return f"{analysis['primary']}-{analysis['secondary']}"
 
     def get_response_for_category(self, category: str, scores: List[float]) -> str:
@@ -64,35 +49,22 @@ class ResponseTemplateManager:
         
         category_templates = self.templates.get(category, {})
         if perspective not in category_templates:
-            # Fall back to the primary category if the exact blend isn't found
             primary = perspective.split('-')[0]
             perspective = primary
             
         perspective_data = category_templates.get(perspective, {})
         return perspective_data.get("response", "No template available for this perspective.")
 
-# src/visualization/worldview_results.py
-from typing import List, Dict
-
 def display_results_page(scores: List[float], category_responses: Dict[str, str], individual_scores: List[List[float]] = None):
-    """
-    Display the complete results page with template responses
-    
-    Parameters:
-    - scores: Overall averaged scores [PreModern, Modern, PostModern]
-    - category_responses: Dict mapping category names to response texts
-    - individual_scores: List of individual question scores before averaging
-    """
+    """Display the complete results page with template responses"""
     template_manager = ResponseTemplateManager()
     
-    # High-level Summary Section
     st.title("Worldview Analysis")
     
-    # Get perspective analysis
+    # Get and display perspective analysis
     analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
     description = PerspectiveAnalyzer.get_perspective_description(analysis)
     
-    # Display overall perspective
     st.header("Overall Perspective")
     st.markdown(f"**{description}**")
     
@@ -102,9 +74,8 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
     PostModern: {scores[2]:.1f}%
     """)
     
-    # Ternary Plot Section
+    # Visualization Section
     st.header("Perspective Visualization")
-    
     plotter = TernaryPlotter()
     chart = plotter.create_plot(
         user_scores=individual_scores if individual_scores else [], 
@@ -112,15 +83,13 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
     )
     plotter.display_plot(chart)
     
-    # Detailed Category Analysis
+    # Category Analysis
     st.header("Category Analysis")
     
-    # Process each category
     for category, user_response in category_responses.items():
         st.subheader(category)
-        
-        # Get template response
         template_response = template_manager.get_response_for_category(category, scores)
+        
         if template_response != "No template available for this perspective.":
             st.write(template_response)
         else:
@@ -128,17 +97,21 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
         
         st.markdown("---")
 
-    # Add PDF download button
-    try:
-        pdf_content = get_pdf_content(scores, category_responses, individual_scores)
-        st.download_button(
-            label="Download Report as PDF",
-            data=pdf_content,
-            file_name="worldview_analysis.pdf",
-            mime="application/pdf"
-        )
-    except Exception as e:
-        st.error(f"Error generating PDF report: {e}")
-
-# Make sure we're explicitly exporting the display_results_page function
-__all__ = ['display_results_page']
+    # PDF Generation
+    if st.button("Generate PDF Report", key="pdf_button", use_container_width=True):
+        with st.spinner('Generating PDF...'):
+            try:
+                from .pdf_generator import generate_survey_report
+                pdf_content = generate_survey_report(scores, category_responses, individual_scores)
+                
+                st.success('PDF Generated!')
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf_content,
+                    file_name="worldview_analysis.pdf",
+                    mime="application/pdf",
+                    key="download_pdf",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"Error generating PDF report: {e}")
