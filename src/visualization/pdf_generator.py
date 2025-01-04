@@ -4,10 +4,11 @@ from fpdf import FPDF
 import io
 from .perspective_analyzer import PerspectiveAnalyzer
 from .ternary_plotter import TernaryPlotter
-from pathlib import Path
 import tempfile
 import os
 import logging
+from typing import List, Dict
+from pathlib import Path
 import json
 
 logger = logging.getLogger(__name__)
@@ -22,39 +23,52 @@ class SurveyPDFReport:
         self.plotter = TernaryPlotter()
 
     def add_title(self):
+        """Add title to the PDF"""
         self.pdf.set_font("Arial", style="B", size=24)
         self.pdf.cell(0, 15, txt="Worldview Analysis", ln=True)
         self.pdf.ln(10)
 
     def add_perspective_summary(self, scores: list):
+        """Add perspective summary section"""
+        # Get analysis and description
         analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
         description = PerspectiveAnalyzer.get_perspective_description(analysis)
-
+        
+        # Add perspective header
         self.pdf.set_font("Arial", style="B", size=18)
         self.pdf.cell(0, 12, txt="Overall Perspective", ln=True)
         self.pdf.ln(5)
         
+        # Add description
         self.pdf.set_font("Arial", style="B", size=14)
         self.pdf.cell(0, 10, txt=description, ln=True)
         self.pdf.ln(5)
 
-    def add_visualization_section(self, scores: list):
+    def add_visualization_section(self, scores: list, individual_scores: List[List[float]] = None):
+        """Add visualization section with ternary plot"""
         self.pdf.set_font("Arial", style="B", size=18)
         self.pdf.cell(0, 12, txt="Perspective Visualization", ln=True)
         self.pdf.ln(5)
 
         try:
-            chart = self.plotter.create_plot(user_scores=[], avg_score=scores)
+            # Create the plot with individual scores if provided
+            chart = self.plotter.create_plot(
+                user_scores=individual_scores if individual_scores else [], 
+                avg_score=scores
+            )
             
+            # Save to temporary file with high DPI for quality
             with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp_file:
                 temp_path = tmp_file.name
                 chart.savefig(temp_path, format='png', dpi=300, bbox_inches='tight')
                 
+                # Add to PDF with consistent dimensions for Letter size
                 plot_width = 180
                 plot_height = plot_width * 0.85
                 x_offset = (215.9 - plot_width) / 2  # Center on Letter page
                 self.pdf.image(temp_path, x=x_offset, w=plot_width, h=plot_height)
             
+            # Cleanup
             os.unlink(temp_path)
             chart.clear()
             
@@ -114,6 +128,7 @@ class SurveyPDFReport:
             self.pdf.ln(5)
 
     def save_to_buffer(self):
+        """Save PDF to buffer"""
         try:
             buffer = io.BytesIO()
             self.pdf.output(dest="S").encode("latin1")
@@ -124,13 +139,14 @@ class SurveyPDFReport:
             logger.error(f"Error in save_to_buffer: {e}")
             raise RuntimeError(f"Error saving PDF to buffer: {e}")
 
-def generate_survey_report(scores: list, category_responses: dict):
+def generate_survey_report(scores: list, category_responses: dict, individual_scores: List[List[float]] = None):
+    """Generate the complete survey report"""
     try:
         report = SurveyPDFReport()
         report.add_title()
         report.add_perspective_summary(scores)
-        report.add_visualization_section(scores)
-        report.add_category_analysis(scores, category_responses)  # Added this line
+        report.add_visualization_section(scores, individual_scores)
+        report.add_category_analysis(scores, category_responses)
         return report.save_to_buffer()
     except Exception as e:
         logger.error(f"Error in report generation: {e}")

@@ -15,11 +15,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @st.cache_data
-def get_pdf_content(scores_in, responses_in):
+def get_pdf_content(scores_in, responses_in, individual_scores_in=None):
     from .pdf_generator import generate_survey_report
     start_time = time.time()
     logger.debug("Starting PDF generation...")
-    result = generate_survey_report(scores_in, responses_in)
+    result = generate_survey_report(scores_in, responses_in, individual_scores_in)
     end_time = time.time()
     logger.debug(f"PDF generation took {end_time - start_time:.2f} seconds")
     return result
@@ -71,9 +71,17 @@ class ResponseTemplateManager:
         perspective_data = category_templates.get(perspective, {})
         return perspective_data.get("response", "No template available for this perspective.")
 
-def display_results_page(scores: List[float], category_responses: Dict[str, str], plotter=None):
+# src/visualization/worldview_results.py
+from typing import List, Dict
+
+def display_results_page(scores: List[float], category_responses: Dict[str, str], individual_scores: List[List[float]] = None):
     """
     Display the complete results page with template responses
+    
+    Parameters:
+    - scores: Overall averaged scores [PreModern, Modern, PostModern]
+    - category_responses: Dict mapping category names to response texts
+    - individual_scores: List of individual question scores before averaging
     """
     template_manager = ResponseTemplateManager()
     
@@ -97,10 +105,11 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
     # Ternary Plot Section
     st.header("Perspective Visualization")
     
-    if plotter is None:
-        plotter = TernaryPlotter()
-    
-    chart = plotter.create_plot(user_scores=[], avg_score=scores)
+    plotter = TernaryPlotter()
+    chart = plotter.create_plot(
+        user_scores=individual_scores if individual_scores else [], 
+        avg_score=scores
+    )
     plotter.display_plot(chart)
     
     # Detailed Category Analysis
@@ -110,7 +119,7 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
     for category, user_response in category_responses.items():
         st.subheader(category)
         
-        # Get template response if available
+        # Get template response
         template_response = template_manager.get_response_for_category(category, scores)
         if template_response != "No template available for this perspective.":
             st.write(template_response)
@@ -121,7 +130,7 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
 
     # Add PDF download button
     try:
-        pdf_content = get_pdf_content(scores, category_responses)
+        pdf_content = get_pdf_content(scores, category_responses, individual_scores)
         st.download_button(
             label="Download Report as PDF",
             data=pdf_content,
