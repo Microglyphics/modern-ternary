@@ -5,6 +5,7 @@ from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
 from src.data.db_manager import append_record
 from src.visualization.worldview_results import display_results_page
+from version import __version__
 import random
 
 # Initialize question manager and ternary plotter
@@ -13,37 +14,37 @@ plotter = TernaryPlotter(scale=100)
 
 def display_questions_and_responses():
     # Debug: Check initial state
-    print("\n=== Entering display_questions_and_responses() ===")
-    print("Query params:", st.query_params)
-    print("Current session state keys:", list(st.session_state.keys()))
+    # print("\n=== Entering display_questions_and_responses() ===")
+    # print("Query params:", st.query_params)
+    # print("Current session state keys:", list(st.session_state.keys()))
     
     # Force scroll to top on initialization
     if 'init' not in st.query_params:
-        print("No init param found - adding it")
+    #    print("No init param found - adding it")
         st.query_params['init'] = '1'
-        print("Added init param, about to rerun")
+    #    print("Added init param, about to rerun")
         st.rerun()
     else:
         print("Init param present:", st.query_params['init'])
 
     st.title("Modernity Worldview Survey")
     question_keys = question_manager.get_all_question_keys()
-    print("Loaded question keys:", question_keys)
+    #print("Loaded question keys:", question_keys)
 
     # Initialize validation state if not exists
     if "validation_attempted" not in st.session_state:
-        print("Initializing validation_attempted state")
+        #print("Initializing validation_attempted state")
         st.session_state.validation_attempted = False
 
     # Display questions
     for q_key in question_keys:
-        print(f"\nProcessing question {q_key}")
+        #print(f"\nProcessing question {q_key}")
         question_text = question_manager.get_question_text(q_key)
         responses = question_manager.get_responses(q_key)
 
         # Initialize shuffled responses
         if f"shuffled_responses_{q_key}" not in st.session_state:
-            print(f"Initializing shuffled responses for {q_key}")
+            #print(f"Initializing shuffled responses for {q_key}")
             st.session_state[f"shuffled_responses_{q_key}"] = [
                 {"text": "Select an option", "r_value": None}
             ] + random.sample(responses, len(responses))
@@ -52,11 +53,11 @@ def display_questions_and_responses():
 
         # Check if question is answered
         is_answered = st.session_state.get(f"{q_key}_r_value") is not None
-        print(f"Question {q_key} answered status:", is_answered)
+        #print(f"Question {q_key} answered status:", is_answered)
 
         # Apply highlighting if validation was attempted and question is unanswered
         if st.session_state.validation_attempted and not is_answered:
-            print(f"Highlighting unanswered question {q_key}")
+            #print(f"Highlighting unanswered question {q_key}")
             st.markdown(
                 f'<div style="background-color: yellow; padding: 5px; border-radius: 5px; font-weight: bold; font-size: 26px; font-family: Roboto, sans-serif;">{question_text}</div>',
                 unsafe_allow_html=True
@@ -82,21 +83,29 @@ def display_questions_and_responses():
 
     # Review Results button and error message at the bottom together
     if st.button("Review Results"):
-        print("\n=== Review Results button clicked ===")
+        #print("\n=== Review Results button clicked ===")
         st.session_state.validation_attempted = True
         has_unanswered = any(
             not st.session_state.get(f"{q_key}_r_value") for q_key in question_keys
         )
-        print("Has unanswered questions:", has_unanswered)
+        #print("Has unanswered questions:", has_unanswered)
         
         if has_unanswered:
-            print("Rerunning due to unanswered questions")
+            #print("Rerunning due to unanswered questions")
             st.rerun()
         else:
-            print("All questions answered, moving to results page")
+            #print("All questions answered, moving to results page")
             st.session_state.page = "results"
             st.rerun()
-
+    
+    # Display version number in footer
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")  # Single horizontal line
+    st.markdown(
+    f"<span style='font-size:10pt;'>Survey Version: {__version__}</span>", 
+    unsafe_allow_html=True
+    )
+    
     # Show error message right after the button if there are unanswered questions
     if st.session_state.validation_attempted:
         has_unanswered = any(
@@ -175,6 +184,15 @@ def display_results_and_chart():
             st.session_state.page = "detailed_results"
             st.rerun()
 
+    # Display version number in footer
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")  # Single horizontal line
+    st.markdown(
+    f"<span style='font-size:10pt;'>Survey Version: {__version__}</span>", 
+    unsafe_allow_html=True
+)
+
+
 def display_detailed_results():
     """Display the detailed results page"""
     if not hasattr(st.session_state, 'final_scores'):
@@ -191,7 +209,7 @@ def display_detailed_results():
     )
     
     if st.button("Start New Survey"):
-        print("Start New Survey button clicked")
+        #print("Start New Survey button clicked")
         st.session_state.clear()
         st.query_params.clear()
         st.switch_page("app.py")  # This forces a complete page reload

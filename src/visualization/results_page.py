@@ -3,6 +3,7 @@
 import streamlit as st
 import time
 from visualization.report import SurveyReport, save_to_pdf
+from version import __version__
 
 def main():
     # Get query parameters
@@ -26,7 +27,7 @@ def main():
         st.title("Survey Results")
         report.plotter.display_plot(chart)
         st.write(text_summary)
- 
+
         # Add PDF download button
         if st.button("Download Report as PDF"):
             try:
@@ -42,7 +43,7 @@ def main():
                 )
                
             except Exception as e:
-                logging.error(f"Error generating PDF: {e}")
+                # logging.error(f"Error generating PDF: {e}")
                 st.error("Failed to generate PDF. Please try again.")
     except Exception as e:
         st.error("An error occurred while processing the results.")

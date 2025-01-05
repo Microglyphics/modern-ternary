@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
+from version import __version__
 
 class TernaryPlotter:
     def __init__(self, scale=100):

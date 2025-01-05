@@ -5,6 +5,7 @@ from .ternary_plotter import TernaryPlotter
 from .perspective_analyzer import PerspectiveAnalyzer
 from .pdf_generator import generate_survey_report  # Moved import to top
 from typing import Dict, List
+from version import __version__
 import json
 from pathlib import Path
 import logging
@@ -84,6 +85,14 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
         avg_score=scores
     )
     plotter.display_plot(chart)
+
+    # Display version number in footer
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")  # Single horizontal line
+    st.markdown(
+    f"<span style='font-size:10pt;'>Survey Version: {__version__}</span>", 
+    unsafe_allow_html=True
+    )
     
     # Add visual spacing before Category Analysis
     st.markdown("<div style='margin-top: 100px;'></div>", unsafe_allow_html=True)
@@ -100,8 +109,6 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
         else:
             st.write(user_response)
         
-        st.markdown("---")
-
     # PDF Generation and Download - single button that handles everything
     st.download_button(
         label="Download Report",
