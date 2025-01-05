@@ -3,10 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
+import sys
 import os
 import sqlite3
 import json
-from src.data.sqlite_utils import SQLiteManager
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+from data.sqlite_utils import SQLiteManager
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
