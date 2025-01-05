@@ -46,7 +46,7 @@ six==1.17.0
 smmap==5.0.1
 streamlit==1.41.1
 tenacity==9.0.0
--e git+https://github.com/Microglyphics/modern-ternary.git@cb6901ef94f9cbd43b19492370581a28ad33ab4c#egg=ternarychart
+git+https://github.com/Microglyphics/modern-ternary.git@cb6901ef94f9cbd43b19492370581a28ad33ab4c#egg=ternarychart
 toml==0.10.2
 tornado==6.4.2
 typing_extensions==4.12.2
