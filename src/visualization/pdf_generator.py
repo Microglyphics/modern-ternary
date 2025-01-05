@@ -1,17 +1,16 @@
-# src/visualization/pdf_generator.py
-
 from fpdf import FPDF
 import io
 from .perspective_analyzer import PerspectiveAnalyzer
 from .ternary_plotter import TernaryPlotter
 import tempfile
 import os
-import logging
+# import logging
 from typing import List, Dict
 from pathlib import Path
 import json
+from version import __version__
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 class SurveyPDFReport:
     def __init__(self):
@@ -35,11 +34,11 @@ class SurveyPDFReport:
         
         # Add disclaimer with word wrap
         self.pdf.set_font("Arial", style="I", size=10)
+        
         self.pdf.multi_cell(0, 5, 
             txt="The Worldview Analysis is not a scientific survey. It is designed as an experiment to provide directional insights.",
             align='L'
         )
-        
         self.pdf.ln(3)  # Small gap between texts
         
         # Add blog URL and copyright
@@ -107,12 +106,15 @@ class SurveyPDFReport:
         
         self.pdf.ln(10)
 
+        # Display version number
+        self.pdf.set_font("Arial", size=10)
+        self.pdf.cell(0, 10, txt=f"Survey Version: {__version__}", ln=True, align="R")
+
     def add_category_analysis(self, scores: list, category_responses: dict):
         """Add the detailed category analysis section"""
         # Force new page for Category Analysis
         self.pdf.add_page()
         
-        from .perspective_analyzer import PerspectiveAnalyzer
         analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
         perspective_type = analysis['primary']
         if analysis['strength'] != 'Strong' and analysis['secondary']:
