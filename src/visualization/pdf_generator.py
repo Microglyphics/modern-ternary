@@ -56,7 +56,7 @@ class SurveyPDFReport:
         """Add title to the PDF"""
         self.pdf.set_font("Arial", style="B", size=24)
         self.pdf.cell(0, 15, txt="Modernity Worldview Analysis", ln=True)
-        self.pdf.ln(10)
+        self.pdf.ln(5)
         self.add_first_page_footer()
 
     def add_perspective_summary(self, scores: list):
@@ -65,20 +65,19 @@ class SurveyPDFReport:
         analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
         description = PerspectiveAnalyzer.get_perspective_description(analysis)
         
-        # Add perspective header
-        self.pdf.set_font("Arial",size=14)
-        self.pdf.cell(0, 12, txt="Based on your survey responses, your modernity worldview perspective is:", ln=True)
-        self.pdf.ln(5)
+        # First part of the sentence
+        self.pdf.set_font("Arial", size=14)
+        self.pdf.write(10, "Based on your survey responses, your modernity worldview perspective is: ")
         
-        # Add description
+        # Description part with bold
         self.pdf.set_font("Arial", style="B", size=14)
-        self.pdf.cell(0, 10, txt=description, ln=True)
-        self.pdf.ln(5)
+        self.pdf.write(10, description)
+        self.pdf.ln(10)
 
     def add_visualization_section(self, scores: list, individual_scores: List[List[float]] = None):
         """Add visualization section with ternary plot"""
-        self.pdf.set_font("Arial", style="B", size=18)
-        self.pdf.cell(0, 12, txt="Perspective Visualization", ln=True)
+        self.pdf.set_font("Arial", size=12)
+        self.pdf.cell(0, 12, txt="The red star on the plot shows the average of your responses.", ln=True)
         self.pdf.ln(5)
 
         try:
@@ -139,7 +138,7 @@ class SurveyPDFReport:
                         "Knowledge Acquisition", "World View", 
                         "Societal Values", "Identity"]:
             # Add category header
-            self.pdf.set_font("Arial", style="B", size=14)
+            self.pdf.set_font("Arial", style="B", size=13)
             self.pdf.cell(0, 10, txt=category, ln=True)
             
             # Get the detailed template response
@@ -156,7 +155,7 @@ class SurveyPDFReport:
                 template_response = "Category templates not found."
             
             # Add template response
-            self.pdf.set_font("Arial", size=12)
+            self.pdf.set_font("Arial", size=11)
             self.pdf.multi_cell(0, 8, txt=template_response)
             self.pdf.ln(5)
 

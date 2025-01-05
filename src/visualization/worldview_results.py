@@ -60,23 +60,24 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
     """Display the complete results page with template responses"""
     template_manager = ResponseTemplateManager()
     
-    st.title("Worldview Analysis")
+    st.title("Modernity Worldview Analysis")
     
     # Get and display perspective analysis
     analysis = PerspectiveAnalyzer.get_perspective_summary(scores)
     description = PerspectiveAnalyzer.get_perspective_description(analysis)
     
-    st.header("Overall Perspective")
-    st.markdown(f"**{description}**")
+    st.markdown("<span style='font-size: 16px;'>Based on your survey responses, your modernity worldview perspective is:</span>", unsafe_allow_html=True)
+    st.markdown(f"<span style='font-size: 22px; color: #0066CC;'><b>{description}</b></span>", unsafe_allow_html=True)
     
-    st.write(f"""
-    PreModern: {scores[0]:.1f}%  
-    Modern: {scores[1]:.1f}%  
-    PostModern: {scores[2]:.1f}%
-    """)
+    # Score Triplet
+    # st.write(f"""
+    # PreModern: {scores[0]:.1f}%  
+    #Modern: {scores[1]:.1f}%  
+    #PostModern: {scores[2]:.1f}%
+    # """)
     
     # Visualization Section
-    st.header("Perspective Visualization")
+    # st.header("Perspective Visualization")
     plotter = TernaryPlotter()
     chart = plotter.create_plot(
         user_scores=individual_scores if individual_scores else [], 
