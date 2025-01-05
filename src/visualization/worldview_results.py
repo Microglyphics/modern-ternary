@@ -3,6 +3,7 @@
 import streamlit as st
 from .ternary_plotter import TernaryPlotter
 from .perspective_analyzer import PerspectiveAnalyzer
+from .pdf_generator import generate_survey_report  # Moved import to top
 from typing import Dict, List
 import json
 from pathlib import Path
@@ -83,7 +84,10 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
     )
     plotter.display_plot(chart)
     
-    # Category Analysis
+    # Add visual spacing before Category Analysis
+    st.markdown("<div style='margin-top: 100px;'></div>", unsafe_allow_html=True)
+    
+    # Category Analysis on new "page"
     st.header("Category Analysis")
     
     for category, user_response in category_responses.items():
@@ -97,21 +101,11 @@ def display_results_page(scores: List[float], category_responses: Dict[str, str]
         
         st.markdown("---")
 
-    # PDF Generation
-    if st.button("Generate PDF Report", key="pdf_button", use_container_width=True):
-        with st.spinner('Generating PDF...'):
-            try:
-                from .pdf_generator import generate_survey_report
-                pdf_content = generate_survey_report(scores, category_responses, individual_scores)
-                
-                st.success('PDF Generated!')
-                st.download_button(
-                    label="Download PDF",
-                    data=pdf_content,
-                    file_name="worldview_analysis.pdf",
-                    mime="application/pdf",
-                    key="download_pdf",
-                    use_container_width=True
-                )
-            except Exception as e:
-                st.error(f"Error generating PDF report: {e}")
+    # PDF Generation and Download - single button that handles everything
+    st.download_button(
+        label="Download Report",
+        data=generate_survey_report(scores, category_responses, individual_scores),
+        file_name="worldview_analysis.pdf",
+        mime="application/pdf",
+        use_container_width=True
+    )
