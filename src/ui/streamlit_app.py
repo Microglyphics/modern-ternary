@@ -107,7 +107,7 @@ def display_questions_and_responses():
             st.error("Some questions are unanswered. Please scroll up and complete them before proceeding.")
 
 def display_results_and_chart():
-    st.title("Review Survey Results")
+    st.title("Modernity Worldview Survey")
     question_keys = question_manager.get_all_question_keys()
 
     responses_summary = {}
@@ -148,9 +148,10 @@ def display_results_and_chart():
         st.write("No sufficient data to generate a ternary chart.")
 
     st.header("Review Your Responses")
+    st.markdown("*If you are satisfied with these responses, click the button below to submit your survey.*")
     for q_key, (question_text, response_text) in responses_summary.items():
         st.subheader(question_text)
-        st.write(f"▶ {response_text}")
+        st.write(f"▶  {response_text}")
 
     # Add navigation buttons
     col1, col2 = st.columns(2)
