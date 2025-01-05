@@ -70,42 +70,38 @@ class SurveyDataViewer:
         """Load response data from database"""
         try:
             logger.debug("Attempting to load response data")
-            responses_list = self.db.get_responses()
-            logger.debug(f"Retrieved {len(responses_list)} responses")
+            with sqlite3.connect(self.db_path) as conn:
+                self.responses_df = pd.read_sql_query("SELECT * FROM survey_results", conn)
             
-            if responses_list:
-                self.responses_df = pd.DataFrame(responses_list)
-                logger.debug(f"Created DataFrame with shape: {self.responses_df.shape}")
-                logger.debug(f"DataFrame columns: {self.responses_df.columns}")
-                
+            if not self.responses_df.empty:
+                logger.debug(f"Loaded {len(self.responses_df)} records")
                 # Convert timestamp to datetime
                 self.responses_df['timestamp'] = pd.to_datetime(self.responses_df['timestamp'])
-                logger.debug("Successfully processed timestamps")
             else:
-                logger.warning("No responses found in database")
+                logger.warning("No data found in survey_results table")
                 self.responses_df = pd.DataFrame()
-        
         except Exception as e:
             logger.error(f"Error loading responses: {e}", exc_info=True)
             st.error(f"Error loading data: {str(e)}")
             self.responses_df = pd.DataFrame()
 
+
     def show_response_analysis(self):
         """Show response analysis"""
         st.header("Response Analysis")
-        
+
         if self.responses_df.empty:
             st.warning("No response data available yet.")
             return
-        
+
         st.subheader("Response Summary")
         st.write(f"Total Responses: {len(self.responses_df)}")
-        
-        # Time-based analysis
+        st.dataframe(self.responses_df, height=500)  # Adjust height as needed
+
         st.subheader("Responses Over Time")
         if 'timestamp' in self.responses_df.columns:
             responses_by_day = self.responses_df.resample('D', on='timestamp').size()
-            
+
             fig, ax = plt.subplots(figsize=(10, 6))
             responses_by_day.plot(ax=ax)
             ax.set_xlabel('Date')
@@ -113,39 +109,31 @@ class SurveyDataViewer:
             ax.set_title('Daily Response Count')
             plt.xticks(rotation=45)
             plt.tight_layout()
-            
+
             st.pyplot(fig)
-            plt.close()
 
     def show_score_distribution(self):
         """Show score distribution analysis"""
         st.header("Score Distribution Analysis")
-        
+
         if self.responses_df.empty:
             st.warning("No response data available yet.")
             return
-        
-        # Get aggregate scores
-        avg_scores = self.db.get_aggregate_scores()
-        
-        if not avg_scores.empty:
-            # Overall distribution
-            st.subheader("Distribution of Average Scores")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            avg_scores.boxplot(ax=ax)
-            ax.set_title('Distribution of Scores by Category')
-            ax.set_ylabel('Score')
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-            
-            st.pyplot(fig)
-            plt.close()
-            
-            # Summary statistics
-            st.subheader("Summary Statistics")
-            st.dataframe(avg_scores.describe())
-        else:
-            st.warning("No score data available for analysis.")
+
+        # Score distribution
+        st.subheader("Distribution of Scores (n1, n2, n3)")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        self.responses_df[['n1', 'n2', 'n3']].boxplot(ax=ax)
+        ax.set_title('Score Distribution by Category')
+        ax.set_ylabel('Score')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        st.pyplot(fig)
+
+        # Summary statistics
+        st.subheader("Summary Statistics")
+        st.dataframe(self.responses_df[['n1', 'n2', 'n3']].describe())
 
     def inspect_database_content():
         """Debug function to inspect database content"""
@@ -239,32 +227,23 @@ class SurveyDataViewer:
     # Make sure inspect_database_content is defined BEFORE main()
 
 def main():
-    st.title("Survey Data Explorer")
-    
-    # Add inspection results to Streamlit
-    if st.checkbox("Show Database Debug Info"):
-        st.text(inspect_database_content())
-    
+    st.title("Survey Data Viewer")
+
     try:
-        viewer = SurveyDataViewer()
-        st.write("Viewer initialized")
-        
-        # Sidebar navigation
+        viewer = SurveyDataViewer(db_path='src/data/survey_results.db')
+
         page = st.sidebar.radio(
             "Select View",
             ["Response Analysis", "Score Distribution"]
         )
-        
-        st.write(f"Selected page: {page}")
-        
-        # Show selected page
+
         if page == "Response Analysis":
             viewer.show_response_analysis()
-        else:
+        elif page == "Score Distribution":
             viewer.show_score_distribution()
-            
+
     except Exception as e:
-        st.error(f"Error in main: {str(e)}")
+        st.error(f"An error occurred: {e}")
         logger.error(f"Error in main: {e}", exc_info=True)
 
 if __name__ == "__main__":

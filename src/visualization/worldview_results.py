@@ -8,11 +8,11 @@ from typing import Dict, List
 from version import __version__
 import json
 from pathlib import Path
-import logging
+# import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 class ResponseTemplateManager:
     """Manages response templates for different worldview categories"""
