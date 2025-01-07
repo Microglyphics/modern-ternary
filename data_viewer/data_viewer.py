@@ -9,6 +9,7 @@ import sqlite3
 import json
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from data.sqlite_utils import SQLiteManager
+from src.data.db_manager import append_record, DB_PATH
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -189,10 +190,10 @@ class SurveyDataViewer:
 def main():
     st.title("Survey Data Viewer")
 
-    # Database path selector
+    # Use the same DB_PATH from db_manager
     db_path = st.sidebar.text_input(
         "Database Path",
-        value='src/data/survey_results.db',
+        value=DB_PATH,  # Use the same path constant
         help="Enter the path to your SQLite database"
     )
 
