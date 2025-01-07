@@ -1,5 +1,6 @@
 # src/ui/streamlit_app.py
-
+import sqlite3
+from pathlib import Path  # Add this for better path handling
 import streamlit as st
 import platform 
 import random
@@ -76,6 +77,8 @@ def calculate_plot_coordinates(n1, n2, n3):
 
 def save_survey_results(session_state):
     """Save survey results to the database using the response ID numbers."""
+    import sqlite3  # Temporary fix until import is added at top
+    
     # Get response values directly from session state
     q1_value = session_state.get('Q1_r_value')
     q2_value = session_state.get('Q2_r_value')
@@ -83,6 +86,26 @@ def save_survey_results(session_state):
     q4_value = session_state.get('Q4_r_value')
     q5_value = session_state.get('Q5_r_value')
     q6_value = session_state.get('Q6_r_value')
+
+    # Add debug logging for database location and make it work cross-platform
+    db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
+    print(f"DEBUG: Writing to database at: {db_path}")
+    print(f"DEBUG: Database exists: {Path(db_path).exists()}")
+    
+    # Log record count before save
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM survey_results")
+            count_before = cursor.fetchone()[0]
+            print(f"DEBUG: Record count before save: {count_before}")
+            
+            # Also check if table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='survey_results'")
+            tables = cursor.fetchall()
+            print(f"DEBUG: Found tables: {tables}")
+    except Exception as e:
+        print(f"DEBUG: Error checking record count: {e}")
 
     # Calculate N values and plot coordinates
     n1, n2, n3 = calculate_n_values(session_state)
@@ -93,26 +116,55 @@ def save_survey_results(session_state):
     browser = get_browser_info()
     region = get_region_info()
 
+    print(f"DEBUG: Saving record with values:")
+    print(f"DEBUG: Q responses: {q1_value}, {q2_value}, {q3_value}, {q4_value}, {q5_value}, {q6_value}")
+    print(f"DEBUG: N values: {n1}, {n2}, {n3}")
+    print(f"DEBUG: Source: {source}")
+    print(f"DEBUG: Version: {__version__}")
+
     # Save to database
-    append_record(
-        q1=q1_value,
-        q2=q2_value,
-        q3=q3_value,
-        q4=q4_value,
-        q5=q5_value,
-        q6=q6_value,
-        n1=n1,
-        n2=n2,
-        n3=n3,
-        plot_x=plot_x,
-        plot_y=plot_y,
-        session_id=session_state.session_id,
-        hash_email_session=None,
-        browser=browser,
-        region=region,
-        source=source,
-        version=__version__
-    )
+    try:
+        append_record(
+            q1=q1_value,
+            q2=q2_value,
+            q3=q3_value,
+            q4=q4_value,
+            q5=q5_value,
+            q6=q6_value,
+            n1=n1,
+            n2=n2,
+            n3=n3,
+            plot_x=plot_x,
+            plot_y=plot_y,
+            session_id=session_state.session_id,
+            hash_email_session=None,
+            browser=browser,
+            region=region,
+            source=source,
+            version=__version__
+        )
+        
+        # Log record count after save
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM survey_results")
+            count_after = cursor.fetchone()[0]
+            print(f"DEBUG: Record count after save: {count_after}")
+            print(f"DEBUG: Records added: {count_after - count_before}")
+            
+            # Log last record added
+            cursor.execute("""
+                SELECT * FROM survey_results 
+                ORDER BY timestamp DESC 
+                LIMIT 1
+            """)
+            last_record = cursor.fetchone()
+            print(f"DEBUG: Last record added: {last_record}")
+            
+    except Exception as e:
+        print(f"DEBUG: Error during save operation: {e}")
+        print(f"DEBUG: Error type: {type(e)}")
+        print(f"DEBUG: Error args: {e.args}")
 
 def display_questions_and_responses():
     # Debug: Check initial state
