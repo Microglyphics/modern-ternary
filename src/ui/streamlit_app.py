@@ -12,6 +12,71 @@ import random
 question_manager = QuestionManager("src/data/questions_responses.json")
 plotter = TernaryPlotter(scale=100)
 
+# Add these new functions after your existing imports but before display_questions_and_responses()
+
+def calculate_n_values(session_state):
+    """Calculate N values from response scores"""
+    total_scores = [0, 0, 0]  # [PreModern, Modern, PostModern]
+    question_keys = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6']
+    
+    for q_key in question_keys:
+        response_r_value = session_state.get(f"{q_key}_r_value")
+        if response_r_value is not None:
+            responses = question_manager.get_responses(q_key)
+            selected_response = next((r for r in responses if r["r_value"] == response_r_value), None)
+            if selected_response:
+                scores = selected_response["scores"]
+                total_scores = [a + b for a, b in zip(total_scores, scores)]
+    
+    # Convert to percentages
+    total = sum(total_scores)
+    if total > 0:
+        n1 = int((total_scores[0] / total) * 100)
+        n2 = int((total_scores[1] / total) * 100)
+        n3 = int((total_scores[2] / total) * 100)
+        return n1, n2, n3
+    return 0, 0, 0
+
+def calculate_plot_coordinates(n1, n2, n3):
+    """Calculate plot coordinates from N values"""
+    total = n1 + n2 + n3
+    if total > 0:
+        plot_x = (2 * n3 + n1) / (2 * total)
+        plot_y = n1 / total
+        return float(plot_x), float(plot_y)
+    return 0.0, 0.0
+
+def save_survey_results(session_state):
+    """Save survey results to the database using the response ID numbers."""
+    # Get response values directly from session state
+    q1_value = session_state.get('Q1_r_value')
+    q2_value = session_state.get('Q2_r_value')
+    q3_value = session_state.get('Q3_r_value')
+    q4_value = session_state.get('Q4_r_value')
+    q5_value = session_state.get('Q5_r_value')
+    q6_value = session_state.get('Q6_r_value')
+
+    # Calculate N values and plot coordinates
+    n1, n2, n3 = calculate_n_values(session_state)
+    plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
+
+    # Save to database
+    append_record(
+        q1=q1_value,
+        q2=q2_value,
+        q3=q3_value,
+        q4=q4_value,
+        q5=q5_value,
+        q6=q6_value,
+        n1=n1,
+        n2=n2,
+        n3=n3,
+        plot_x=plot_x,
+        plot_y=plot_y,
+        session_id=st.session_state.get('session_id', 'default'),
+        hash_email_session=None
+    )
+
 def display_questions_and_responses():
     # Debug: Check initial state
     # print("\n=== Entering display_questions_and_responses() ===")
@@ -170,6 +235,9 @@ def display_results_and_chart():
             st.rerun()
     with col2:
         if st.button("View Detailed Analysis"):
+            # Save to database before proceeding to detailed results
+            save_survey_results(st.session_state)
+            
             # Store data for detailed results
             st.session_state.final_scores = avg_score
             st.session_state.individual_scores = individual_scores
