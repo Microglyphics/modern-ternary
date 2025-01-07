@@ -46,17 +46,18 @@ def append_record(
     n1: int, n2: int, n3: int, plot_x: float, plot_y: float,
     session_id: str, hash_email_session: Optional[str] = None,
     browser: Optional[str] = None, region: Optional[str] = None,
-    source: str = 'local'  # Add source parameter with default
+    source: str = 'local', version: Optional[str] = None
 ):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
         INSERT INTO survey_results (
             q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
-            n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, 
+            source, version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (q1, q2, q3, q4, q5, q6, n1, n2, n3, plot_x, plot_y, session_id, 
-              hash_email_session, browser, region, source))
+              hash_email_session, browser, region, source, version))
         conn.commit()
 
 # Read all records

@@ -1,15 +1,30 @@
 # src/ui/streamlit_app.py
 
 import streamlit as st
+import platform 
+import random
+import os
+import uuid  # Add this
 from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
 from src.data.db_manager import append_record
 from src.visualization.worldview_results import display_results_page
 from version import __version__
-import random
-import os
-import uuid  # Add this
-from datetime import datetime  # Add this
+from datetime import datetime
+
+def get_browser_info():
+    """Get basic system information as a browser placeholder"""
+    try:
+        return platform.system()  # Returns 'Windows', 'Linux', 'Darwin' etc.
+    except:
+        return "Unknown System"
+
+def get_region_info():
+    """Get basic region information"""
+    try:
+        return platform.node()  # Returns computer's network name
+    except:
+        return "Unknown Region"
 
 # Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
@@ -73,11 +88,10 @@ def save_survey_results(session_state):
     n1, n2, n3 = calculate_n_values(session_state)
     plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
 
-    # Determine source
+    # Determine source and get basic system info
     source = get_environment_source()
-
-    # Get session ID from session state
-    session_id = session_state.session_id
+    browser = get_browser_info()
+    region = get_region_info()
 
     # Save to database
     append_record(
@@ -92,11 +106,12 @@ def save_survey_results(session_state):
         n3=n3,
         plot_x=plot_x,
         plot_y=plot_y,
-        session_id=session_id,  # Now using the actual session ID
+        session_id=session_state.session_id,
         hash_email_session=None,
-        browser=None,
-        region=None,
-        source=source
+        browser=browser,
+        region=region,
+        source=source,
+        version=__version__
     )
 
 def display_questions_and_responses():
