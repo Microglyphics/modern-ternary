@@ -8,14 +8,23 @@ from src.visualization.worldview_results import display_results_page
 from version import __version__
 import random
 import os
+import uuid  # Add this
+from datetime import datetime  # Add this
 
 # Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
 plotter = TernaryPlotter(scale=100)
 
+def initialize_session():
+    """Initialize session state with a unique session ID if not already present"""
+    if 'session_id' not in st.session_state:
+        # Create a unique session ID combining timestamp and UUID
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        unique_id = str(uuid.uuid4())[:8]  # Take first 8 characters of UUID
+        st.session_state.session_id = f"{timestamp}_{unique_id}"
+
 def get_environment_source():
     """Determine if we're running locally or on server"""
-    # You can customize this check based on your deployment setup
     return 'server' if os.getenv('STREAMLIT_SERVER_URL') else 'local'
 
 def calculate_n_values(session_state):
@@ -60,6 +69,9 @@ def save_survey_results(session_state):
     q5_value = session_state.get('Q5_r_value')
     q6_value = session_state.get('Q6_r_value')
 
+    # Use the session ID from session state
+    session_id = session_state.session_id
+    
     # Calculate N values and plot coordinates
     n1, n2, n3 = calculate_n_values(session_state)
     plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
@@ -80,7 +92,7 @@ def save_survey_results(session_state):
         n3=n3,
         plot_x=plot_x,
         plot_y=plot_y,
-        session_id=session_state.get('session_id', 'default'),
+        session_id=session_id,
         hash_email_session=None,
         browser=None,
         region=None,
@@ -106,9 +118,9 @@ def display_questions_and_responses():
     question_keys = question_manager.get_all_question_keys()
     #print("Loaded question keys:", question_keys)
 
-    # Initialize validation state if not exists
+    # Initialise validation state if not exists
     if "validation_attempted" not in st.session_state:
-        #print("Initializing validation_attempted state")
+        #print("Initialising validation_attempted state")
         st.session_state.validation_attempted = False
 
     # Display questions
@@ -117,9 +129,9 @@ def display_questions_and_responses():
         question_text = question_manager.get_question_text(q_key)
         responses = question_manager.get_responses(q_key)
 
-        # Initialize shuffled responses
+        # Initialise shuffled responses
         if f"shuffled_responses_{q_key}" not in st.session_state:
-            #print(f"Initializing shuffled responses for {q_key}")
+            #print(f"Initialising shuffled responses for {q_key}")
             st.session_state[f"shuffled_responses_{q_key}"] = [
                 {"text": "Select an option", "r_value": None}
             ] + random.sample(responses, len(responses))
@@ -196,7 +208,7 @@ def display_results_and_chart():
 
     responses_summary = {}
     individual_scores = []  # Store individual scores
-    n1, n2, n3 = 0, 0, 0  # Initialize aggregate scores
+    n1, n2, n3 = 0, 0, 0  # Initialise aggregate scores
 
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
@@ -293,6 +305,8 @@ def display_detailed_results():
         st.switch_page("app.py")  # This forces a complete page reload
 
 def main():
+    # Initialise session before anything else
+    initialize_session()
     # Determine the current page
     if "page" not in st.session_state:
         st.session_state.page = "questions"  # Default page
