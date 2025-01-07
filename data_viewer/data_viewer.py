@@ -7,20 +7,35 @@ import sys
 import os
 import sqlite3
 import json
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
-from data.sqlite_utils import SQLiteManager
-from src.data.db_manager import append_record, DB_PATH
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def get_database_path():
+    """Get the database path for both local and production environments"""
+    # Try possible database locations
+    possible_paths = [
+        'survey_results.db',  # Same directory
+        'src/data/survey_results.db',  # Local development path
+        '/mount/src/modern-ternary/src/data/survey_results.db',  # Production path
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            logger.debug(f"Found database at: {path}")
+            return path
+            
+    # Default to the production path even if it doesn't exist yet
+    default_path = '/mount/src/modern-ternary/src/data/survey_results.db'
+    logger.debug(f"Using default path: {default_path}")
+    return default_path
+
 class SurveyDataViewer:
-    def __init__(self, db_path: str = 'questionnaire_responses.db'):
+    def __init__(self, db_path: str = None):
         """Initialize viewer with database connection"""
-        logger.debug(f"Initializing SurveyDataViewer with database path: {db_path}")
-        self.db_path = db_path
-        self.db = SQLiteManager(db_path)
+        self.db_path = db_path or get_database_path()
+        logger.debug(f"Initializing SurveyDataViewer with path: {self.db_path}")
         self.load_data()
 
     def load_data(self):
@@ -190,12 +205,39 @@ class SurveyDataViewer:
 def main():
     st.title("Survey Data Viewer")
 
-    # Use the same DB_PATH from db_manager
+    # Get default database path
+    default_db_path = get_database_path()
+    
+    # Database path input with current path display
+    st.sidebar.markdown("### Database Configuration")
+    st.sidebar.text("Current path:")
+    st.sidebar.text(default_db_path)
+    
     db_path = st.sidebar.text_input(
         "Database Path",
-        value=DB_PATH,  # Use the same path constant
+        value=default_db_path,
         help="Enter the path to your SQLite database"
     )
+
+    # Add debug info expander
+    with st.sidebar.expander("Database Debug Info"):
+        st.write("Path:", db_path)
+        if os.path.exists(db_path):
+            st.write("✅ Database file exists")
+            try:
+                with sqlite3.connect(db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT COUNT(*) FROM survey_results")
+                    count = cursor.fetchone()[0]
+                    st.write(f"Total records: {count}")
+                    
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                    tables = cursor.fetchall()
+                    st.write("Tables:", tables)
+            except Exception as e:
+                st.write("❌ Error reading database:", str(e))
+        else:
+            st.write("❌ Database file not found")
 
     try:
         viewer = SurveyDataViewer(db_path=db_path)
@@ -209,11 +251,6 @@ def main():
             viewer.show_response_analysis()
         elif page == "Score Distribution":
             viewer.show_score_distribution()
-
-        # Add debug information
-        if st.sidebar.checkbox("Show Debug Info"):
-            st.sidebar.text(f"Database Path: {db_path}")
-            st.sidebar.text(f"Total Records: {len(viewer.responses_df)}")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
