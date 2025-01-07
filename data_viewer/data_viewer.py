@@ -14,52 +14,6 @@ from data.sqlite_utils import SQLiteManager
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def inspect_database_content():
-    """Debug function to inspect database content"""
-    conn = sqlite3.connect('questionnaire_responses.db')
-    cursor = conn.cursor()
-    
-    output = []
-    output.append("\n=== Database Inspection ===")
-    
-    # Check tables
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = cursor.fetchall()
-    output.append(f"\nTables found: {tables}")
-    
-    try:
-        # Check responses table content
-        cursor.execute("SELECT * FROM responses")
-        rows = cursor.fetchall()
-        
-        if not rows:
-            output.append("No rows found in responses table")
-            return "\n".join(output)
-        
-        # Get column names
-        cursor.execute("PRAGMA table_info(responses)")
-        columns = [col[1] for col in cursor.fetchall()]
-        output.append(f"\nColumns: {columns}")
-        
-        # Print each row nicely formatted
-        for row in rows:
-            output.append("\n--- Row ---")
-            for col, val in zip(columns, row):
-                output.append(f"{col}: {val}")
-                if col in ['responses', 'scores', 'aggregate_response']:
-                    try:
-                        parsed = json.loads(val)
-                        output.append(f"Parsed {col}: {json.dumps(parsed, indent=2)}")
-                    except json.JSONDecodeError as e:
-                        output.append(f"Error parsing {col}: {e}")
-                        output.append(f"Raw value: {val}")
-    except Exception as e:
-        output.append(f"Error inspecting database: {e}")
-    finally:
-        conn.close()
-        
-    return "\n".join(output)
-
 class SurveyDataViewer:
     def __init__(self, db_path: str = 'questionnaire_responses.db'):
         """Initialize viewer with database connection"""
@@ -73,7 +27,16 @@ class SurveyDataViewer:
         try:
             logger.debug("Attempting to load response data")
             with sqlite3.connect(self.db_path) as conn:
-                self.responses_df = pd.read_sql_query("SELECT * FROM survey_results", conn)
+                self.responses_df = pd.read_sql_query("""
+                    SELECT 
+                        timestamp,
+                        q1_response, q2_response, q3_response, 
+                        q4_response, q5_response, q6_response,
+                        n1, n2, n3, plot_x, plot_y,
+                        session_id, source, version, browser, region
+                    FROM survey_results 
+                    ORDER BY timestamp DESC
+                """, conn)
             
             if not self.responses_df.empty:
                 logger.debug(f"Loaded {len(self.responses_df)} records")
@@ -87,7 +50,6 @@ class SurveyDataViewer:
             st.error(f"Error loading data: {str(e)}")
             self.responses_df = pd.DataFrame()
 
-
     def show_response_analysis(self):
         """Show response analysis"""
         st.header("Response Analysis")
@@ -96,23 +58,63 @@ class SurveyDataViewer:
             st.warning("No response data available yet.")
             return
 
+        # Basic stats
         st.subheader("Response Summary")
-        st.write(f"Total Responses: {len(self.responses_df)}")
-        st.dataframe(self.responses_df, height=500)  # Adjust height as needed
+        total_responses = len(self.responses_df)
+        st.write(f"Total Responses: {total_responses}")
 
+        # Version distribution
+        if 'version' in self.responses_df.columns:
+            st.subheader("Version Distribution")
+            version_counts = self.responses_df['version'].value_counts()
+            st.bar_chart(version_counts)
+
+        # Source distribution
+        if 'source' in self.responses_df.columns:
+            st.subheader("Source Distribution")
+            source_counts = self.responses_df['source'].value_counts()
+            st.bar_chart(source_counts)
+
+        # Data table with filters
+        st.subheader("Response Details")
+        with st.expander("Filter Options"):
+            # Add filters
+            col1, col2 = st.columns(2)
+            with col1:
+                if 'version' in self.responses_df.columns:
+                    selected_version = st.multiselect(
+                        "Filter by Version",
+                        options=self.responses_df['version'].unique()
+                    )
+            with col2:
+                if 'source' in self.responses_df.columns:
+                    selected_source = st.multiselect(
+                        "Filter by Source",
+                        options=self.responses_df['source'].unique()
+                    )
+
+        # Apply filters
+        filtered_df = self.responses_df
+        if 'version' in self.responses_df.columns and selected_version:
+            filtered_df = filtered_df[filtered_df['version'].isin(selected_version)]
+        if 'source' in self.responses_df.columns and selected_source:
+            filtered_df = filtered_df[filtered_df['source'].isin(selected_source)]
+
+        # Display filtered dataframe
+        st.dataframe(filtered_df, height=500)
+
+        # Show responses over time
         st.subheader("Responses Over Time")
-        if 'timestamp' in self.responses_df.columns:
-            responses_by_day = self.responses_df.resample('D', on='timestamp').size()
-
-            fig, ax = plt.subplots(figsize=(10, 6))
-            responses_by_day.plot(ax=ax)
-            ax.set_xlabel('Date')
-            ax.set_ylabel('Number of Responses')
-            ax.set_title('Daily Response Count')
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-
-            st.pyplot(fig)
+        responses_by_day = self.responses_df.resample('D', on='timestamp').size()
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        responses_by_day.plot(ax=ax)
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Number of Responses')
+        ax.set_title('Daily Response Count')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        st.pyplot(fig)
 
     def show_score_distribution(self):
         """Show score distribution analysis"""
@@ -122,117 +124,80 @@ class SurveyDataViewer:
             st.warning("No response data available yet.")
             return
 
+        # Add filters
+        with st.expander("Filter Options"):
+            col1, col2 = st.columns(2)
+            with col1:
+                if 'version' in self.responses_df.columns:
+                    selected_version = st.multiselect(
+                        "Filter by Version",
+                        options=self.responses_df['version'].unique()
+                    )
+            with col2:
+                if 'source' in self.responses_df.columns:
+                    selected_source = st.multiselect(
+                        "Filter by Source",
+                        options=self.responses_df['source'].unique()
+                    )
+
+        # Apply filters
+        filtered_df = self.responses_df
+        if 'version' in self.responses_df.columns and selected_version:
+            filtered_df = filtered_df[filtered_df['version'].isin(selected_version)]
+        if 'source' in self.responses_df.columns and selected_source:
+            filtered_df = filtered_df[filtered_df['source'].isin(selected_source)]
+
         # Score distribution
-        st.subheader("Distribution of Scores (n1, n2, n3)")
+        st.subheader("Distribution of Scores")
+        
+        # Box plot
         fig, ax = plt.subplots(figsize=(10, 6))
-        self.responses_df[['n1', 'n2', 'n3']].boxplot(ax=ax)
+        filtered_df[['n1', 'n2', 'n3']].boxplot(ax=ax)
         ax.set_title('Score Distribution by Category')
         ax.set_ylabel('Score')
+        ax.set_xticklabels(['PreModern', 'Modern', 'PostModern'])
         plt.xticks(rotation=45)
         plt.tight_layout()
+        st.pyplot(fig)
 
+        # Violin plot for more detailed distribution view
+        st.subheader("Detailed Score Distribution")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        score_data = pd.melt(filtered_df[['n1', 'n2', 'n3']], 
+                            var_name='Category', 
+                            value_name='Score')
+        sns.violinplot(data=score_data, x='Category', y='Score', ax=ax)
+        ax.set_xticklabels(['PreModern', 'Modern', 'PostModern'])
+        plt.xticks(rotation=45)
+        plt.tight_layout()
         st.pyplot(fig)
 
         # Summary statistics
         st.subheader("Summary Statistics")
-        st.dataframe(self.responses_df[['n1', 'n2', 'n3']].describe())
+        st.dataframe(filtered_df[['n1', 'n2', 'n3']].describe())
 
-    def inspect_database_content():
-        """Debug function to inspect database content"""
-        conn = sqlite3.connect('questionnaire_responses.db')
-        cursor = conn.cursor()
-        
-        output = []
-        output.append("\n=== Database Inspection ===")
-        
-        # Check tables
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
-        output.append(f"\nTables found: {tables}")
-        
-        # Check responses table content
-        cursor.execute("SELECT * FROM responses")
-        rows = cursor.fetchall()
-        
-        if not rows:
-            output.append("No rows found in responses table")
-            return "\n".join(output)
-        
-        # Get column names
-        cursor.execute("PRAGMA table_info(responses)")
-        columns = [col[1] for col in cursor.fetchall()]
-        output.append(f"\nColumns: {columns}")
-        
-        # Print each row nicely formatted
-        for row in rows:
-            output.append("\n--- Row ---")
-            for col, val in zip(columns, row):
-                output.append(f"{col}: {val}")
-                if col in ['responses', 'scores', 'aggregate_response']:
-                    try:
-                        parsed = json.loads(val)
-                        output.append(f"Parsed {col}: {json.dumps(parsed, indent=2)}")
-                    except json.JSONDecodeError as e:
-                        output.append(f"Error parsing {col}: {e}")
-                        output.append(f"Raw value: {val}")
-        
-        conn.close()
-        return "\n".join(output)
-    
-    # In data_viewer/data_viewer.py, add as a function outside the class
-    def inspect_database_content():
-        """Debug function to inspect database content"""
-        conn = sqlite3.connect('questionnaire_responses.db')
-        cursor = conn.cursor()
-        
-        output = []
-        output.append("\n=== Database Inspection ===")
-        
-        # Check tables
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
-        output.append(f"\nTables found: {tables}")
-        
-        try:
-            # Check responses table content
-            cursor.execute("SELECT * FROM responses")
-            rows = cursor.fetchall()
-            
-            if not rows:
-                output.append("No rows found in responses table")
-                return "\n".join(output)
-            
-            # Get column names
-            cursor.execute("PRAGMA table_info(responses)")
-            columns = [col[1] for col in cursor.fetchall()]
-            output.append(f"\nColumns: {columns}")
-            
-            # Print each row nicely formatted
-            for row in rows:
-                output.append("\n--- Row ---")
-                for col, val in zip(columns, row):
-                    output.append(f"{col}: {val}")
-                    if col in ['responses', 'scores', 'aggregate_response']:
-                        try:
-                            parsed = json.loads(val)
-                            output.append(f"Parsed {col}: {json.dumps(parsed, indent=2)}")
-                        except json.JSONDecodeError as e:
-                            output.append(f"Error parsing {col}: {e}")
-                            output.append(f"Raw value: {val}")
-        except Exception as e:
-            output.append(f"Error inspecting database: {e}")
-        finally:
-            conn.close()
-            
-        return "\n".join(output)
-
-    # Make sure inspect_database_content is defined BEFORE main()
+        # Correlation heatmap
+        st.subheader("Score Correlations")
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(filtered_df[['n1', 'n2', 'n3']].corr(), 
+                   annot=True, 
+                   cmap='coolwarm', 
+                   ax=ax)
+        plt.tight_layout()
+        st.pyplot(fig)
 
 def main():
     st.title("Survey Data Viewer")
 
+    # Database path selector
+    db_path = st.sidebar.text_input(
+        "Database Path",
+        value='src/data/survey_results.db',
+        help="Enter the path to your SQLite database"
+    )
+
     try:
-        viewer = SurveyDataViewer(db_path='src/data/survey_results.db')
+        viewer = SurveyDataViewer(db_path=db_path)
 
         page = st.sidebar.radio(
             "Select View",
@@ -243,6 +208,11 @@ def main():
             viewer.show_response_analysis()
         elif page == "Score Distribution":
             viewer.show_score_distribution()
+
+        # Add debug information
+        if st.sidebar.checkbox("Show Debug Info"):
+            st.sidebar.text(f"Database Path: {db_path}")
+            st.sidebar.text(f"Total Records: {len(viewer.responses_df)}")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
