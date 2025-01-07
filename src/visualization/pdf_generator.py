@@ -34,19 +34,25 @@ class SurveyPDFReport:
         
         # Add disclaimer with word wrap
         self.pdf.set_font("Arial", style="I", size=10)
-        
         self.pdf.multi_cell(0, 5, 
             txt="The Worldview Analysis is not a scientific survey. It is designed as an experiment to provide directional insights.",
             align='L'
         )
         self.pdf.ln(3)  # Small gap between texts
         
-        # Add blog URL and copyright
+        # Add blog URL and copyright - split into parts
         self.pdf.set_font("Arial", size=10)
-        self.pdf.multi_cell(0, 5,
-            txt="For more information, visit http://philosophics.blog. All Rights Reserved © 2025 Bry Willis",
-            align='L'
-        )
+        self.pdf.write(5, "For more information, visit ")
+        
+        # Style and add URL
+        self.pdf.set_text_color(0, 0, 255)  # RGB for blue
+        self.pdf.set_font("Arial", style="U", size=10)  # Underlined
+        self.pdf.write(5, "http://philosophics.blog")
+        
+        # Reset style for remaining text
+        self.pdf.set_text_color(0, 0, 0)  # Back to black
+        self.pdf.set_font("Arial", size=10)  # Remove underline
+        self.pdf.write(5, ". All Rights Reserved © 2025 Bry Willis, Philosophics. XXX")
         
         # Restore previous position
         self.pdf.set_y(current_y)
