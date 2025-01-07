@@ -69,9 +69,6 @@ def save_survey_results(session_state):
     q5_value = session_state.get('Q5_r_value')
     q6_value = session_state.get('Q6_r_value')
 
-    # Use the session ID from session state
-    session_id = session_state.session_id
-    
     # Calculate N values and plot coordinates
     n1, n2, n3 = calculate_n_values(session_state)
     plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
@@ -79,7 +76,10 @@ def save_survey_results(session_state):
     # Determine source
     source = get_environment_source()
 
-    # Save to database with explicit None values for optional parameters
+    # Get session ID from session state
+    session_id = session_state.session_id
+
+    # Save to database
     append_record(
         q1=q1_value,
         q2=q2_value,
@@ -92,7 +92,7 @@ def save_survey_results(session_state):
         n3=n3,
         plot_x=plot_x,
         plot_y=plot_y,
-        session_id=session_id,
+        session_id=session_id,  # Now using the actual session ID
         hash_email_session=None,
         browser=None,
         region=None,
