@@ -27,7 +27,8 @@ def initialize_database():
                 session_id TEXT,
                 hash_email_session TEXT,
                 browser TEXT DEFAULT NULL,
-                region TEXT DEFAULT NULL
+                region TEXT DEFAULT NULL,
+                source TEXT DEFAULT 'local'
             );
             """)
             conn.commit()

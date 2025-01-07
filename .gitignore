@@ -73,7 +73,9 @@ questionnaire_responses.db
 test_streamlit.py
 src/questions/question_manager_OLD.py
 
+
 # Ignore working files
 Response Permutations.csv
 Response Permutations.xlsx
 Modernity Worldview Home Page.docx
+Ternary plot.sqbpro
