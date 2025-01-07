@@ -7,12 +7,16 @@ from src.data.db_manager import append_record
 from src.visualization.worldview_results import display_results_page
 from version import __version__
 import random
+import os
 
 # Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
 plotter = TernaryPlotter(scale=100)
 
-# Add these new functions after your existing imports but before display_questions_and_responses()
+def get_environment_source():
+    """Determine if we're running locally or on server"""
+    # You can customize this check based on your deployment setup
+    return 'server' if os.getenv('STREAMLIT_SERVER_URL') else 'local'
 
 def calculate_n_values(session_state):
     """Calculate N values from response scores"""
@@ -60,7 +64,10 @@ def save_survey_results(session_state):
     n1, n2, n3 = calculate_n_values(session_state)
     plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
 
-    # Save to database
+    # Determine source
+    source = get_environment_source()
+
+    # Save to database with explicit None values for optional parameters
     append_record(
         q1=q1_value,
         q2=q2_value,
@@ -73,8 +80,11 @@ def save_survey_results(session_state):
         n3=n3,
         plot_x=plot_x,
         plot_y=plot_y,
-        session_id=st.session_state.get('session_id', 'default'),
-        hash_email_session=None
+        session_id=session_state.get('session_id', 'default'),
+        hash_email_session=None,
+        browser=None,
+        region=None,
+        source=source
     )
 
 def display_questions_and_responses():

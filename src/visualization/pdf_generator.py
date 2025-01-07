@@ -52,7 +52,7 @@ class SurveyPDFReport:
         # Reset style for remaining text
         self.pdf.set_text_color(0, 0, 0)  # Back to black
         self.pdf.set_font("Arial", size=10)  # Remove underline
-        self.pdf.write(5, ". All Rights Reserved © 2025 Bry Willis, Philosophics. XXX")
+        self.pdf.write(5, ". All Rights Reserved © 2025 Bry Willis, Philosophics ")
         
         # Restore previous position
         self.pdf.set_y(current_y)
