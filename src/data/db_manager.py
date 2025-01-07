@@ -1,6 +1,9 @@
+# src/data/db_manager.py
+
 import os
 import sqlite3
 from typing import List, Optional
+from src.core.question_manager import QuestionManager
 
 DB_PATH = "src/data/survey_results.db"
 
@@ -37,20 +40,23 @@ def initialize_database():
         print("Database already exists. Initialization skipped.")
 
 # Append a new record
+
 def append_record(
     q1: int, q2: int, q3: int, q4: int, q5: int, q6: int,
     n1: int, n2: int, n3: int, plot_x: float, plot_y: float,
     session_id: str, hash_email_session: Optional[str] = None,
-    browser: Optional[str] = None, region: Optional[str] = None
+    browser: Optional[str] = None, region: Optional[str] = None,
+    source: str = 'local'  # Add source parameter with default
 ):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
         INSERT INTO survey_results (
             q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
-            n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (q1, q2, q3, q4, q5, q6, n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region))
+            n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (q1, q2, q3, q4, q5, q6, n1, n2, n3, plot_x, plot_y, session_id, 
+              hash_email_session, browser, region, source))
         conn.commit()
 
 # Read all records
@@ -59,6 +65,86 @@ def read_all_records():
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM survey_results;")
         return cursor.fetchall()
+
+# In streamlit_app.py
+
+def get_response_number(response_text: str, q_key: str, question_manager: QuestionManager) -> int:
+    """
+    Get the response number (R-value) for a given response text.
+    
+    Args:
+        response_text: The selected response text
+        q_key: The question key (e.g., 'Q1')
+        question_manager: Instance of QuestionManager
+    
+    Returns:
+        Integer value from the response ID (e.g., 5 from 'Q1R5')
+    """
+    responses = question_manager.get_responses(q_key)
+    for response in responses:
+        if response['text'] == response_text:
+            # Extract the number after 'R' from the ID
+            return response['r_value']
+    return None
+
+def save_survey_results(session_state, question_manager):
+    """
+    Save survey results to the database using the response ID numbers.
+    """
+    # Get response numbers for each question
+    q1_value = get_response_number(
+        session_state.get('radio_Q1'), 
+        'Q1', 
+        question_manager
+    )
+    q2_value = get_response_number(
+        session_state.get('radio_Q2'), 
+        'Q2', 
+        question_manager
+    )
+    q3_value = get_response_number(
+        session_state.get('radio_Q3'), 
+        'Q3', 
+        question_manager
+    )
+    q4_value = get_response_number(
+        session_state.get('radio_Q4'), 
+        'Q4', 
+        question_manager
+    )
+    q5_value = get_response_number(
+        session_state.get('radio_Q5'), 
+        'Q5', 
+        question_manager
+    )
+    q6_value = get_response_number(
+        session_state.get('radio_Q6'), 
+        'Q6', 
+        question_manager
+    )
+
+    # Calculate N values and plot coordinates (assuming these are needed)
+    # This is a placeholder - adjust according to your actual calculation needs
+    n1, n2, n3 = calculate_n_values(session_state)
+    plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
+
+    # Save to database
+    append_record(
+        q1=q1_value,
+        q2=q2_value,
+        q3=q3_value,
+        q4=q4_value,
+        q5=q5_value,
+        q6=q6_value,
+        n1=n1,
+        n2=n2,
+        n3=n3,
+        plot_x=plot_x,
+        plot_y=plot_y,
+        session_id=st.session_state.get('session_id', 'default'),
+        hash_email_session=None  # Add if you implement email hashing
+    )
+
 
 # Test the setup
 if __name__ == "__main__":
