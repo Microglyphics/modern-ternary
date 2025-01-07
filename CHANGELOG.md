@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.1.3] - 2024-12-28
+## [1.1.4] - 2025-01-07
+### Added
+- No Adds
+
+### Changed
+- DB captures browser, region, version, and session info
+- DB Captures response ID instead of response text
+- PDF footer looks better; fixed URL link to philosophics.blog
+
+# [1.1.3] - 2024-12-28
 ### Added
 - No Adds
 
