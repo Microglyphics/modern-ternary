@@ -13,6 +13,12 @@ from src.data.db_manager import append_record
 from src.visualization.worldview_results import display_results_page
 from version import __version__
 from datetime import datetime
+import logging
+import sys
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def get_browser_info():
     """Get basic system information as a browser placeholder"""
