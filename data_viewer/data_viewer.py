@@ -93,6 +93,22 @@ class SurveyDataViewer:
             st.error(f"Error loading data: {str(e)}")
             self.responses_df = pd.DataFrame()
 
+    # Fix the method definition
+    def inspect_latest_records(self):
+        """Inspect the most recent records in the database"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, timestamp, source, version 
+                FROM survey_results 
+                ORDER BY timestamp DESC 
+                LIMIT 5
+            """)
+            records = cursor.fetchall()
+            st.subheader("Latest Records")
+            for record in records:
+                st.write(f"ID: {record[0]}, Time: {record[1]}, Source: {record[2]}, Version: {record[3]}")
+
     def show_response_analysis(self):
             """Show response analysis"""
             st.header("Response Analysis")
@@ -101,6 +117,10 @@ class SurveyDataViewer:
                 st.warning("No response data available yet.")
                 return
 
+            # After the Response Summary section
+            st.subheader("Latest Records Details")
+            self.inspect_latest_records()
+            
             # Basic stats
             st.subheader("Response Summary")
             total_responses = len(self.responses_df)
