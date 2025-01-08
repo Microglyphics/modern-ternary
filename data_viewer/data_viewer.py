@@ -52,6 +52,12 @@ def log_table_contents(db_path):
     except Exception as e:
         logger.error(f"Error logging table contents: {e}", exc_info=True)
 
+@st.cache_data(ttl=0)  # Forces cache to clear every time
+def load_responses(db_path):
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("PRAGMA journal_mode=WAL;")  # Ensure WAL mode is set
+        return pd.read_sql_query("SELECT * FROM survey_results ORDER BY timestamp DESC", conn)
+
 class SurveyDataViewer:
     def __init__(self, db_path: str = None):
         """Initialize viewer with database connection"""
@@ -71,30 +77,7 @@ class SurveyDataViewer:
 
         try:
             logger.debug("Attempting to load response data")
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("PRAGMA journal_mode=WAL;")  # Enable WAL mode
-                self.responses_df = pd.read_sql_query("""
-                    SELECT 
-                        timestamp,
-                        CAST(q1_response AS INTEGER) as q1_response, 
-                        CAST(q2_response AS INTEGER) as q2_response,
-                        CAST(q3_response AS INTEGER) as q3_response,
-                        CAST(q4_response AS INTEGER) as q4_response,
-                        CAST(q5_response AS INTEGER) as q5_response,
-                        CAST(q6_response AS INTEGER) as q6_response,
-                        CAST(n1 AS INTEGER) as n1,
-                        CAST(n2 AS INTEGER) as n2,
-                        CAST(n3 AS INTEGER) as n3,
-                        CAST(plot_x AS FLOAT) as plot_x,
-                        CAST(plot_y AS FLOAT) as plot_y,
-                        session_id,
-                        source,
-                        version,
-                        browser,
-                        region
-                    FROM survey_results 
-                    ORDER BY timestamp DESC
-                """, conn)
+            self.responses_df = load_responses(self.db_path)
 
             if not self.responses_df.empty:
                 logger.debug(f"Loaded {len(self.responses_df)} records")
