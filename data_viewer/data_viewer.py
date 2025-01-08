@@ -72,7 +72,9 @@ class SurveyDataViewer:
         try:
             logger.debug("Attempting to load response data")
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("PRAGMA journal_mode=WAL;")  # Enable WAL mode
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.execute("PRAGMA wal_checkpoint(FULL);")  # Force WAL to flush changes
+                
                 self.responses_df = pd.read_sql_query("""
                     SELECT 
                         timestamp,
@@ -99,7 +101,7 @@ class SurveyDataViewer:
             if not self.responses_df.empty:
                 logger.debug(f"Loaded {len(self.responses_df)} records")
                 self.responses_df['timestamp'] = pd.to_datetime(self.responses_df['timestamp'])
-                logger.debug(f"DataFrame info:\n{self.responses_df.info()}")
+                logger.debug(f"DataFrame columns and types: {self.responses_df.dtypes}")
             else:
                 logger.warning("No data found in survey_results table")
                 self.responses_df = pd.DataFrame()
@@ -107,7 +109,6 @@ class SurveyDataViewer:
             logger.error(f"Error loading responses: {e}", exc_info=True)
             st.error(f"Error loading data: {str(e)}")
             self.responses_df = pd.DataFrame()
-
 
     def inspect_latest_records(self):
         """Inspect the most recent records in the database"""
