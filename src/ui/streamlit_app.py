@@ -42,19 +42,26 @@ def initialize_session():
 
 def get_environment_source():
     """Determine if we're running locally or on server"""
-    # Basic check for production environment
-    is_production = '/mount/src' in os.getcwd()
+    cwd = os.getcwd()
+    logger.debug(f"BEGIN ENVIRONMENT CHECK ---------------")
+    logger.debug(f"Current working directory: {cwd}")
+    
+    # Add detailed checks
+    env_details = {
+        'cwd': cwd,
+        'mount_exists': os.path.exists('/mount/src'),
+        'in_path': '/mount/src' in cwd,
+        'full_path': os.path.abspath(cwd)
+    }
+    logger.debug(f"Environment details: {env_details}")
+    
+    # Check if we're in production
+    is_production = '/mount/src' in cwd
     source = 'server' if is_production else 'local'
     
-    # Add basic debug info that's safe to expose
-    debug_info = {
-        'cwd': os.getcwd(),
-        'determined_source': source,
-        'path_check': '/mount/src' in os.getcwd()
-    }
-    
-    # Log debug info using st.write for persistence
-    st.write("Environment Detection:", debug_info)
+    logger.debug(f"Environment Check - Is Production: {is_production}")
+    logger.debug(f"Environment Check - Determined Source: {source}")
+    logger.debug(f"END ENVIRONMENT CHECK -----------------")
     
     return source
 
