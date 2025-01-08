@@ -7,6 +7,7 @@ import sys
 import os
 import sqlite3
 import json
+from pathlib import Path  # Import Path to handle filesystem paths
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
