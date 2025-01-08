@@ -41,7 +41,31 @@ def initialize_session():
 
 def get_environment_source():
     """Determine if we're running locally or on server"""
-    return 'server' if os.getenv('STREAMLIT_SERVER_URL') else 'local'
+    # Check for production environment
+    production_indicators = {
+        'STREAMLIT_SERVER_URL': os.environ.get('STREAMLIT_SERVER_URL'),
+        'MOUNT_PATH': os.path.exists('/mount/src'),
+        'CURRENT_PATH': '/mount/src' in os.getcwd(),
+        'HOSTNAME': os.environ.get('HOSTNAME')
+    }
+
+    # Add extensive debug logging
+    debug_info = {
+        'cwd': os.getcwd(),
+        'file_path': __file__,
+        'indicators': production_indicators,
+        'all_env_vars': dict(os.environ)
+    }
+
+    print("DEBUG: Environment Detection Details:")
+    print(json.dumps(debug_info, indent=2))
+
+    # If any indicator is True, we're in production
+    is_production = any(production_indicators.values())
+    source = 'server' if is_production else 'local'
+    print(f"DEBUG: Determined environment: {source}")
+    
+    return source
 
 def calculate_n_values(session_state):
     """Calculate N values from response scores"""
@@ -140,6 +164,21 @@ def save_survey_results(session_state):
         # Display save details
         st.write("### Saving Record Details:")
         st.json(save_details)
+
+        # Add this right before the append_record call
+        env_debug = {
+            "Current Directory": os.getcwd(),
+            "File Path": __file__,
+            "Environment Source": source,
+            "Production Indicators": {
+                "STREAMLIT_SERVER_URL": os.environ.get('STREAMLIT_SERVER_URL'),
+                "Mount Path Exists": os.path.exists('/mount/src'),
+                "In Mount Path": '/mount/src' in os.getcwd(),
+                "Has HOSTNAME": 'HOSTNAME' in os.environ
+            }
+        }
+        st.write("### Environment Detection Debug:")
+        st.json(env_debug)
 
         # Save to database
         try:
