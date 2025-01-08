@@ -14,10 +14,12 @@ from src.visualization.worldview_results import display_results_page
 from version import __version__
 from datetime import datetime
 import logging
+import pandas as pd
 import sys
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
 logger.debug(f"DB Path: {db_path}")
@@ -124,14 +126,9 @@ def calculate_plot_coordinates(n1, n2, n3):
     return 0.0, 0.0
 
 def save_survey_results(session_state):
-    """Save survey results to the database using the response ID numbers."""
-    # Store debug info in the session state
-    if 'debug_info' not in st.session_state:
-        st.session_state.debug_info = {}
-    
-    # Create an expander for debug information
+    """Save survey results to the database and verify by fetching updated records."""
     with st.expander("💾 Database Operation Details", expanded=True):
-        # Get response values directly from session state
+        # Prepare data for saving
         q1_value = session_state.get('Q1_r_value')
         q2_value = session_state.get('Q2_r_value')
         q3_value = session_state.get('Q3_r_value')
@@ -139,135 +136,33 @@ def save_survey_results(session_state):
         q5_value = session_state.get('Q5_r_value')
         q6_value = session_state.get('Q6_r_value')
 
-        # Add debug logging for database location and make it work cross-platform
-        db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
-        st.session_state.debug_info['db_path'] = db_path
-        st.session_state.debug_info['db_exists'] = Path(db_path).exists()
-        
-        st.info(f"📁 Database Location: {st.session_state.debug_info['db_path']}")
-        st.write(f"Database exists: {'✅' if st.session_state.debug_info['db_exists'] else '❌'}")
-        
-        # Log record count before save
-        try:
-            with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM survey_results")
-                count_before = cursor.fetchone()[0]
-                st.session_state.debug_info['count_before'] = count_before
-                st.write(f"Records before save: {count_before}")
-                
-                # Also check if table exists
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='survey_results'")
-                tables = cursor.fetchall()
-                st.session_state.debug_info['tables'] = tables
-                st.write(f"Found tables: {tables}")
-        except Exception as e:
-            st.error(f"Error checking record count: {e}")
-            st.session_state.debug_info['error'] = str(e)
-
-        # Calculate N values and plot coordinates
         n1, n2, n3 = calculate_n_values(session_state)
         plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
 
-        # Determine source and get basic system info
         source = get_environment_source()
         browser = get_browser_info()
         region = get_region_info()
 
-        # Store save details in session state
-        save_details = {
-            "Q responses": [q1_value, q2_value, q3_value, q4_value, q5_value, q6_value],
-            "N values": [n1, n2, n3],
-            "Source": source,
-            "Version": __version__,
-            "Browser": browser,
-            "Region": region
-        }
-        # Call this function where appropriate
-        log_table_contents()
-        st.session_state.debug_info['save_details'] = save_details
-
-        # Display save details
-        st.write("### Saving Record Details:")
-        st.json(save_details)
-
-        # Add this right before the append_record call
-        env_debug = {
-            "Current Directory": os.getcwd(),
-            "File Path": __file__,
-            "Environment Source": source,
-            "Production Indicators": {
-                "STREAMLIT_SERVER_URL": os.environ.get('STREAMLIT_SERVER_URL'),
-                "Mount Path Exists": os.path.exists('/mount/src'),
-                "In Mount Path": '/mount/src' in os.getcwd(),
-                "Has HOSTNAME": 'HOSTNAME' in os.environ
-            }
-        }
-        st.write("### Environment Detection Debug:")
-        st.json(env_debug)
-
         # Save to database
         try:
             append_record(
-                q1=q1_value,
-                q2=q2_value,
-                q3=q3_value,
-                q4=q4_value,
-                q5=q5_value,
-                q6=q6_value,
-                n1=n1,
-                n2=n2,
-                n3=n3,
-                plot_x=plot_x,
-                plot_y=plot_y,
-                session_id=session_state.session_id,
-                hash_email_session=None,
-                browser=browser,
-                region=region,
-                source=source,
-                version=__version__
+                q1=q1_value, q2=q2_value, q3=q3_value, q4=q4_value,
+                q5=q5_value, q6=q6_value, n1=n1, n2=n2, n3=n3,
+                plot_x=plot_x, plot_y=plot_y, session_id=session_state.session_id,
+                hash_email_session=None, browser=browser, region=region,
+                source=source, version=__version__
             )
-            
-            # Log record count after save
+
+            # Read the latest data from the database
             with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM survey_results")
-                count_after = cursor.fetchone()[0]
-                st.session_state.debug_info['count_after'] = count_after
-                st.success(f"✅ Save successful! Records: {count_before} → {count_after}")
-                
-                # Log last record added
-                cursor.execute("""
-                    SELECT * FROM survey_results 
-                    ORDER BY timestamp DESC 
-                    LIMIT 1
-                """)
-                last_record = cursor.fetchone()
-                record_details = {
-                    "ID": last_record[0],
-                    "Timestamp": last_record[1],
-                    "Q responses": last_record[2:8],
-                    "N values": last_record[8:11],
-                    "Plot coordinates": last_record[11:13],
-                    "Session": last_record[13],
-                    "Browser": last_record[14],
-                    "Region": last_record[15],
-                    "Source": last_record[16],
-                    "Version": last_record[17]
-                }
-                st.session_state.debug_info['last_record'] = record_details
-                st.write("### Last Record Added:")
-                st.json(record_details)
-                
+                updated_table = pd.read_sql_query("SELECT * FROM survey_results ORDER BY timestamp DESC", conn)
+                st.success(f"✅ Save successful! Records updated.")
+                st.write("### Updated Table:")
+                st.dataframe(updated_table)
+
         except Exception as e:
-            error_info = {
-                "error_type": str(type(e)),
-                "error_message": str(e)
-            }
-            st.session_state.debug_info['save_error'] = error_info
             st.error("❌ Save Failed!")
-            st.error(f"Error type: {type(e)}")
-            st.error(f"Error message: {str(e)}")
+            st.error(f"Error: {e}")
 
     # Display persistent debug info at the bottom of the page
     st.markdown("---")
@@ -384,8 +279,8 @@ def display_results_and_chart():
     question_keys = question_manager.get_all_question_keys()
 
     responses_summary = {}
-    individual_scores = []  # Store individual scores
-    n1, n2, n3 = 0, 0, 0  # Initialise aggregate scores
+    individual_scores = []
+    n1, n2, n3 = 0, 0, 0
 
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
@@ -406,14 +301,11 @@ def display_results_and_chart():
         else:
             response_text = "No response selected."
 
-        # Add the response to the summary
         responses_summary[q_key] = (question_text, response_text)
 
-    # Normalize aggregated scores for ternary plot
     total = n1 + n2 + n3
     avg_score = [n1 / total * 100, n2 / total * 100, n3 / total * 100] if total > 0 else None
 
-    # Display ternary plot if we have valid scores
     if individual_scores and avg_score:
         chart = plotter.create_plot(user_scores=individual_scores, avg_score=avg_score)
         plotter.display_plot(chart)
@@ -426,30 +318,18 @@ def display_results_and_chart():
         st.subheader(question_text)
         st.write(f"▶  {response_text}")
 
-    # Add navigation buttons
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Back to Questions"):
             st.session_state.page = "questions"
             st.rerun()
     with col2:
-        if st.button("View Detailed Analysis"):
-            # Save to database before proceeding to detailed results
+        if st.button("Submit and View Results"):
+            # Save to database and fetch updated data
             save_survey_results(st.session_state)
-            
-            # Store data for detailed results
-            st.session_state.final_scores = avg_score
-            st.session_state.individual_scores = individual_scores
-            st.session_state.category_responses = {
-                "Source of Truth": responses_summary.get("Q1", ("", "No response"))[1],
-                "Understanding the World": responses_summary.get("Q2", ("", "No response"))[1],
-                "Knowledge Acquisition": responses_summary.get("Q3", ("", "No response"))[1],
-                "World View": responses_summary.get("Q4", ("", "No response"))[1],
-                "Societal Values": responses_summary.get("Q5", ("", "No response"))[1],
-                "Identity": responses_summary.get("Q6", ("", "No response"))[1]
-            }
             st.session_state.page = "detailed_results"
-            st.rerun()
+            ### st.rerun()
+
 
     # Display version number in footer
     st.markdown("<br>", unsafe_allow_html=True)
