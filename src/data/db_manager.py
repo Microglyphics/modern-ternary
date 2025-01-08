@@ -1,9 +1,14 @@
 # src/data/db_manager.py
 
+import logging
 import os
 import sqlite3
 from typing import List, Optional
 from src.core.question_manager import QuestionManager
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 DB_PATH = "src/data/survey_results.db"
 
@@ -40,7 +45,6 @@ def initialize_database():
         print("Database already exists. Initialization skipped.")
 
 # Append a new record
-
 def append_record(
     q1: int, q2: int, q3: int, q4: int, q5: int, q6: int,
     n1: int, n2: int, n3: int, plot_x: float, plot_y: float,
@@ -48,17 +52,54 @@ def append_record(
     browser: Optional[str] = None, region: Optional[str] = None,
     source: str = 'local', version: Optional[str] = None
 ):
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-        INSERT INTO survey_results (
-            q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
-            n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, 
-            source, version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (q1, q2, q3, q4, q5, q6, n1, n2, n3, plot_x, plot_y, session_id, 
-              hash_email_session, browser, region, source, version))
-        conn.commit()
+    """Save a survey response"""
+    # Log database path info
+    logger.debug(f"DB_PATH being used: {DB_PATH}")
+    logger.debug(f"DB_PATH absolute path: {os.path.abspath(DB_PATH)}")
+    logger.debug(f"DB exists: {os.path.exists(DB_PATH)}")
+
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            # Log current record count
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM survey_results")
+            count_before = cursor.fetchone()[0]
+            logger.debug(f"Current record count: {count_before}")
+
+            # Log the values being inserted
+            logger.debug(f"Inserting values: q1={q1}, q2={q2}, q3={q3}, q4={q4}, q5={q5}, q6={q6}")
+            logger.debug(f"N values: n1={n1}, n2={n2}, n3={n3}")
+            logger.debug(f"Source: {source}, Version: {version}")
+
+            # Perform the insert
+            cursor.execute("""
+            INSERT INTO survey_results (
+                q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
+                n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, 
+                source, version
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """, (q1, q2, q3, q4, q5, q6, n1, n2, n3, plot_x, plot_y, session_id, 
+                  hash_email_session, browser, region, source, version))
+            
+            # Get and log the ID of the inserted record
+            last_id = cursor.lastrowid
+            logger.debug(f"Inserted record ID: {last_id}")
+
+            conn.commit()
+
+            # Verify the record was inserted
+            cursor.execute("SELECT COUNT(*) FROM survey_results")
+            count_after = cursor.fetchone()[0]
+            logger.debug(f"New record count: {count_after}")
+            logger.debug(f"Records added: {count_after - count_before}")
+
+            return last_id  # Return the ID of the inserted record
+
+    except Exception as e:
+        logger.error(f"Error inserting record: {str(e)}")
+        logger.error(f"Error type: {type(e)}")
+        logger.error(f"Error args: {e.args}")
+        raise  # Re-raise the exception after logging
 
 # Read all records
 def read_all_records():
