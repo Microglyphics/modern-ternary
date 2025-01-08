@@ -11,6 +11,9 @@ import json
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
+logger.debug(f"DB Path: {db_path}")
+logger.debug(f"Database Exists: {os.path.exists(db_path)}")
 
 def get_database_path():
     """Get the database path for both local and production environments"""
@@ -32,6 +35,23 @@ def get_database_path():
     logger.debug(f"Using default path: {default_path}")
     return default_path
 
+def log_table_contents():
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+            logger.debug(f"Tables in database: {tables}")
+            
+            # Log contents of the first table
+            if tables:
+                first_table = tables[0][0]
+                cursor.execute(f"SELECT * FROM {first_table} LIMIT 5")
+                records = cursor.fetchall()
+                logger.debug(f"Contents of {first_table}: {records}")
+    except Exception as e:
+        logger.error(f"Error logging table contents: {e}", exc_info=True)
+
 class SurveyDataViewer:
     def __init__(self, db_path: str = None):
         """Initialize viewer with database connection"""
@@ -48,6 +68,9 @@ class SurveyDataViewer:
 
     def load_data(self):
         """Load response data from database"""
+        # Call this function where appropriate
+        log_table_contents()
+
         try:
             logger.debug("Attempting to load response data")
             with sqlite3.connect(self.db_path) as conn:
