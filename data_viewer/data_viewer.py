@@ -236,6 +236,11 @@ class SurveyDataViewer:
 def main():
     st.title("Survey Data Viewer")
 
+    # Add a refresh cache button
+    if st.button("🔄 Refresh Cache"):
+        st.cache_data.clear()  # Clear the cache for fresh data load
+        st.success("Cache cleared! Refresh the page or reload the data to see updates.")
+
     st.sidebar.markdown("### Environment Information")
     st.sidebar.text(f"Current working directory: {os.getcwd()}")
 
