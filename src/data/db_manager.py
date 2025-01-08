@@ -39,6 +39,7 @@ def initialize_database():
                 source TEXT DEFAULT 'local'
             );
             """)
+            conn.execute("PRAGMA journal_mode=WAL;") 
             conn.commit()
             print("Database initialized.")
     else:
