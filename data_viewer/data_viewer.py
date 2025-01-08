@@ -239,7 +239,12 @@ def main():
     # Add a refresh cache button
     if st.button("🔄 Refresh Cache"):
         st.cache_data.clear()  # Clear the cache for fresh data load
-        st.success("Cache cleared! Refresh the page or reload the data to see updates.")
+        try:
+            viewer = SurveyDataViewer(db_path=get_database_path())
+            st.success("Cache cleared and data reloaded!")
+        except Exception as e:
+            st.error(f"Error reloading data: {e}")
+            logger.error(f"Error during cache refresh: {e}", exc_info=True)
 
     st.sidebar.markdown("### Environment Information")
     st.sidebar.text(f"Current working directory: {os.getcwd()}")
