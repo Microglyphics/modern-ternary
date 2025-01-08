@@ -5,7 +5,8 @@ import streamlit as st
 import platform 
 import random
 import os
-import uuid  # Add this
+import uuid
+import json # Add this for JSON logging
 from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
 from src.data.db_manager import append_record
@@ -41,29 +42,19 @@ def initialize_session():
 
 def get_environment_source():
     """Determine if we're running locally or on server"""
-    # Check for production environment
-    production_indicators = {
-        'STREAMLIT_SERVER_URL': os.environ.get('STREAMLIT_SERVER_URL'),
-        'MOUNT_PATH': os.path.exists('/mount/src'),
-        'CURRENT_PATH': '/mount/src' in os.getcwd(),
-        'HOSTNAME': os.environ.get('HOSTNAME')
-    }
-
-    # Add extensive debug logging
+    # Basic check for production environment
+    is_production = '/mount/src' in os.getcwd()
+    source = 'server' if is_production else 'local'
+    
+    # Add basic debug info that's safe to expose
     debug_info = {
         'cwd': os.getcwd(),
-        'file_path': __file__,
-        'indicators': production_indicators,
-        'all_env_vars': dict(os.environ)
+        'determined_source': source,
+        'path_check': '/mount/src' in os.getcwd()
     }
-
-    print("DEBUG: Environment Detection Details:")
-    print(json.dumps(debug_info, indent=2))
-
-    # If any indicator is True, we're in production
-    is_production = any(production_indicators.values())
-    source = 'server' if is_production else 'local'
-    print(f"DEBUG: Determined environment: {source}")
+    
+    # Log debug info using st.write for persistence
+    st.write("Environment Detection:", debug_info)
     
     return source
 
