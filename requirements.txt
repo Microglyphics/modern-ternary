@@ -55,3 +55,5 @@ urllib3==2.3.0
 watchdog==6.0.0
 requests>=2.32.3
 user-agents>=2.2.0
+gspread>=5.0.0
+google-auth>=1.0.0
