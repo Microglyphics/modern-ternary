@@ -17,28 +17,28 @@ import logging
 import sys
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
-logger.debug(f"DB Path: {db_path}")
-logger.debug(f"Database Exists: {os.path.exists(db_path)}")
+# logging.basicConfig(level=logging.DEBUG)
+# logger = logging.getLogger(__name__)
+# db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
+# logger.debug(f"DB Path: {db_path}")
+# logger.debug(f"Database Exists: {os.path.exists(db_path)}")
 
-def log_table_contents():
-    try:
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            tables = cursor.fetchall()
-            logger.debug(f"Tables in database: {tables}")
+# def log_table_contents():
+#     try:
+#         with sqlite3.connect(db_path) as conn:
+#             cursor = conn.cursor()
+#             cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+#             tables = cursor.fetchall()
+#             logger.debug(f"Tables in database: {tables}")
             
-            # Log contents of the first table
-            if tables:
-                first_table = tables[0][0]
-                cursor.execute(f"SELECT * FROM {first_table} LIMIT 5")
-                records = cursor.fetchall()
-                logger.debug(f"Contents of {first_table}: {records}")
-    except Exception as e:
-        logger.error(f"Error logging table contents: {e}", exc_info=True)
+#             # Log contents of the first table
+#             if tables:
+#                 first_table = tables[0][0]
+#                 cursor.execute(f"SELECT * FROM {first_table} LIMIT 5")
+#                 records = cursor.fetchall()
+#                 logger.debug(f"Contents of {first_table}: {records}")
+#     except Exception as e:
+#         logger.error(f"Error logging table contents: {e}", exc_info=True)
 
 def get_browser_info():
     """Get basic system information as a browser placeholder"""
@@ -69,8 +69,8 @@ def initialize_session():
 def get_environment_source():
     """Determine if we're running locally or on server"""
     cwd = os.getcwd()
-    logger.debug(f"BEGIN ENVIRONMENT CHECK ---------------")
-    logger.debug(f"Current working directory: {cwd}")
+    # logger.debug(f"BEGIN ENVIRONMENT CHECK ---------------")
+    # logger.debug(f"Current working directory: {cwd}")
     
     # Add detailed checks
     env_details = {
@@ -79,15 +79,15 @@ def get_environment_source():
         'in_path': '/mount/src' in cwd,
         'full_path': os.path.abspath(cwd)
     }
-    logger.debug(f"Environment details: {env_details}")
+    # logger.debug(f"Environment details: {env_details}")
     
     # Check if we're in production
     is_production = '/mount/src' in cwd
     source = 'server' if is_production else 'local'
     
-    logger.debug(f"Environment Check - Is Production: {is_production}")
-    logger.debug(f"Environment Check - Determined Source: {source}")
-    logger.debug(f"END ENVIRONMENT CHECK -----------------")
+    # logger.debug(f"Environment Check - Is Production: {is_production}")
+    # logger.debug(f"Environment Check - Determined Source: {source}")
+    # logger.debug(f"END ENVIRONMENT CHECK -----------------")
     
     return source
 
@@ -141,29 +141,29 @@ def save_survey_results(session_state):
 
         # Add debug logging for database location and make it work cross-platform
         db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
-        st.session_state.debug_info['db_path'] = db_path
-        st.session_state.debug_info['db_exists'] = Path(db_path).exists()
+        # st.session_state.debug_info['db_path'] = db_path
+        # st.session_state.debug_info['db_exists'] = Path(db_path).exists()
         
-        st.info(f"📁 Database Location: {st.session_state.debug_info['db_path']}")
-        st.write(f"Database exists: {'✅' if st.session_state.debug_info['db_exists'] else '❌'}")
+        # st.info(f"📁 Database Location: {st.session_state.debug_info['db_path']}")
+        # st.write(f"Database exists: {'✅' if st.session_state.debug_info['db_exists'] else '❌'}")
         
         # Log record count before save
-        try:
-            with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM survey_results")
-                count_before = cursor.fetchone()[0]
-                st.session_state.debug_info['count_before'] = count_before
-                st.write(f"Records before save: {count_before}")
+        # try:
+        #     with sqlite3.connect(db_path) as conn:
+        #         cursor = conn.cursor()
+        #         cursor.execute("SELECT COUNT(*) FROM survey_results")
+        #         count_before = cursor.fetchone()[0]
+        #         st.session_state.debug_info['count_before'] = count_before
+        #         st.write(f"Records before save: {count_before}")
                 
                 # Also check if table exists
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='survey_results'")
-                tables = cursor.fetchall()
-                st.session_state.debug_info['tables'] = tables
-                st.write(f"Found tables: {tables}")
-        except Exception as e:
-            st.error(f"Error checking record count: {e}")
-            st.session_state.debug_info['error'] = str(e)
+                # cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='survey_results'")
+                # tables = cursor.fetchall()
+                # st.session_state.debug_info['tables'] = tables
+                # st.write(f"Found tables: {tables}")
+        # except Exception as e:
+        #     st.error(f"Error checking record count: {e}")
+        #     st.session_state.debug_info['error'] = str(e)
 
         # Calculate N values and plot coordinates
         n1, n2, n3 = calculate_n_values(session_state)
@@ -184,97 +184,97 @@ def save_survey_results(session_state):
             "Region": region
         }
         # Call this function where appropriate
-        log_table_contents()
-        st.session_state.debug_info['save_details'] = save_details
+        # log_table_contents()
+        # st.session_state.debug_info['save_details'] = save_details
 
         # Display save details
-        st.write("### Saving Record Details:")
-        st.json(save_details)
+        # st.write("### Saving Record Details:")
+        # st.json(save_details)
 
         # Add this right before the append_record call
-        env_debug = {
-            "Current Directory": os.getcwd(),
-            "File Path": __file__,
-            "Environment Source": source,
-            "Production Indicators": {
-                "STREAMLIT_SERVER_URL": os.environ.get('STREAMLIT_SERVER_URL'),
-                "Mount Path Exists": os.path.exists('/mount/src'),
-                "In Mount Path": '/mount/src' in os.getcwd(),
-                "Has HOSTNAME": 'HOSTNAME' in os.environ
-            }
-        }
-        st.write("### Environment Detection Debug:")
-        st.json(env_debug)
+        # env_debug = {
+        #     "Current Directory": os.getcwd(),
+        #     "File Path": __file__,
+        #     "Environment Source": source,
+        #     "Production Indicators": {
+        #         "STREAMLIT_SERVER_URL": os.environ.get('STREAMLIT_SERVER_URL'),
+        #         "Mount Path Exists": os.path.exists('/mount/src'),
+        #         "In Mount Path": '/mount/src' in os.getcwd(),
+        #         "Has HOSTNAME": 'HOSTNAME' in os.environ
+        #     }
+        # }
+        # st.write("### Environment Detection Debug:")
+        # st.json(env_debug)
 
         # Save to database
-        try:
-            append_record(
-                q1=q1_value,
-                q2=q2_value,
-                q3=q3_value,
-                q4=q4_value,
-                q5=q5_value,
-                q6=q6_value,
-                n1=n1,
-                n2=n2,
-                n3=n3,
-                plot_x=plot_x,
-                plot_y=plot_y,
-                session_id=session_state.session_id,
-                hash_email_session=None,
-                browser=browser,
-                region=region,
-                source=source,
-                version=__version__
-            )
+        # try:
+        #     append_record(
+        #         q1=q1_value,
+        #         q2=q2_value,
+        #         q3=q3_value,
+        #         q4=q4_value,
+        #         q5=q5_value,
+        #         q6=q6_value,
+        #         n1=n1,
+        #         n2=n2,
+        #         n3=n3,
+        #         plot_x=plot_x,
+        #         plot_y=plot_y,
+        #         session_id=session_state.session_id,
+        #         hash_email_session=None,
+        #         browser=browser,
+        #         region=region,
+        #         source=source,
+        #         version=__version__
+        #     )
             
-            # Log record count after save
-            with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM survey_results")
-                count_after = cursor.fetchone()[0]
-                st.session_state.debug_info['count_after'] = count_after
-                st.success(f"✅ Save successful! Records: {count_before} → {count_after}")
+        #     # Log record count after save
+        #     with sqlite3.connect(db_path) as conn:
+        #         cursor = conn.cursor()
+        #         cursor.execute("SELECT COUNT(*) FROM survey_results")
+        #         count_after = cursor.fetchone()[0]
+        #         st.session_state.debug_info['count_after'] = count_after
+        #         st.success(f"✅ Save successful! Records: {count_before} → {count_after}")
                 
-                # Log last record added
-                cursor.execute("""
-                    SELECT * FROM survey_results 
-                    ORDER BY timestamp DESC 
-                    LIMIT 1
-                """)
-                last_record = cursor.fetchone()
-                record_details = {
-                    "ID": last_record[0],
-                    "Timestamp": last_record[1],
-                    "Q responses": last_record[2:8],
-                    "N values": last_record[8:11],
-                    "Plot coordinates": last_record[11:13],
-                    "Session": last_record[13],
-                    "Browser": last_record[14],
-                    "Region": last_record[15],
-                    "Source": last_record[16],
-                    "Version": last_record[17]
-                }
-                st.session_state.debug_info['last_record'] = record_details
-                st.write("### Last Record Added:")
-                st.json(record_details)
+        #         # Log last record added
+        #         cursor.execute("""
+        #             SELECT * FROM survey_results 
+        #             ORDER BY timestamp DESC 
+        #             LIMIT 1
+        #         """)
+        #         last_record = cursor.fetchone()
+        #         record_details = {
+        #             "ID": last_record[0],
+        #             "Timestamp": last_record[1],
+        #             "Q responses": last_record[2:8],
+        #             "N values": last_record[8:11],
+        #             "Plot coordinates": last_record[11:13],
+        #             "Session": last_record[13],
+        #             "Browser": last_record[14],
+        #             "Region": last_record[15],
+        #             "Source": last_record[16],
+        #             "Version": last_record[17]
+        #         }
+        #         st.session_state.debug_info['last_record'] = record_details
+        #         st.write("### Last Record Added:")
+        #         st.json(record_details)
                 
-        except Exception as e:
-            error_info = {
-                "error_type": str(type(e)),
-                "error_message": str(e)
-            }
-            st.session_state.debug_info['save_error'] = error_info
-            st.error("❌ Save Failed!")
-            st.error(f"Error type: {type(e)}")
-            st.error(f"Error message: {str(e)}")
+        # except Exception as e:
+        #     error_info = {
+        #         "error_type": str(type(e)),
+        #         "error_message": str(e)
+        #     }
+        #     st.session_state.debug_info['save_error'] = error_info
+        #     st.error("❌ Save Failed!")
+        #     st.error(f"Error type: {type(e)}")
+        #     st.error(f"Error message: {str(e)}")
 
     # Display persistent debug info at the bottom of the page
-    st.markdown("---")
-    st.subheader("📊 Database Operation Summary")
-    if 'debug_info' in st.session_state:
-        with st.expander("View Complete Debug Information", expanded=True):
-            st.json(st.session_state.debug_info)
+    # st.markdown("---")
+    # st.subheader("📊 Database Operation Summary")
+    # if 'debug_info' in st.session_state:
+    #     with st.expander("View Complete Debug Information", expanded=True):
+    #         st.json(st.session_state.debug_info)
 
 def display_questions_and_responses():
     # Debug: Check initial state
