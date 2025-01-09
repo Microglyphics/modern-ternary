@@ -32,7 +32,7 @@ logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
 
 # Google Sheets configuration
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-CREDS = Credentials.from_service_account_file("modernity-worldview-3b29c2214fbb.json", scopes=SCOPE)
+CREDS = Credentials.from_service_account_file("src/modernity-worldview-3b29c2214fbb.json", scopes=SCOPE)
 gc = gspread.authorize(CREDS)
 SHEET_ID = "1prTJl_fBBaLAPyIyvF2_OzyBWw_CsT8m4MfCckCKDKI"
 
