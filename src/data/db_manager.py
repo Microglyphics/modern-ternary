@@ -47,60 +47,53 @@ def initialize_database():
 
 # Append a new record
 def append_record(
-    q1: int, q2: int, q3: int, q4: int, q5: int, q6: int,
-    n1: int, n2: int, n3: int, plot_x: float, plot_y: float,
-    session_id: str, hash_email_session: Optional[str] = None,
-    browser: Optional[str] = None, region: Optional[str] = None,
-    source: str = 'local', version: Optional[str] = None
+    q1_response: int, q2_response: int, q3_response: int, q4_response: int,
+    q5_response: int, q6_response: int, n1: int, n2: int, n3: int,
+    plot_x: float, plot_y: float, session_id: str,
+    hash_email_session: Optional[str] = None, browser: Optional[str] = None,
+    region: Optional[str] = None, source: str = 'local',
+    version: Optional[str] = None
 ):
     """Save a survey response"""
-    # Log database path info
     logger.debug(f"DB_PATH being used: {DB_PATH}")
     logger.debug(f"DB_PATH absolute path: {os.path.abspath(DB_PATH)}")
     logger.debug(f"DB exists: {os.path.exists(DB_PATH)}")
 
     try:
         with sqlite3.connect(DB_PATH) as conn:
-            # Log current record count
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM survey_results")
             count_before = cursor.fetchone()[0]
             logger.debug(f"Current record count: {count_before}")
 
-            # Log the values being inserted
-            logger.debug(f"Inserting values: q1={q1}, q2={q2}, q3={q3}, q4={q4}, q5={q5}, q6={q6}")
-            logger.debug(f"N values: n1={n1}, n2={n2}, n3={n3}")
+            logger.debug(f"Inserting values: {q1_response}, {q2_response}, {q3_response}, {q4_response}, {q5_response}, {q6_response}")
+            logger.debug(f"N values: {n1}, {n2}, {n3}")
             logger.debug(f"Source: {source}, Version: {version}")
 
-            # Perform the insert
             cursor.execute("""
             INSERT INTO survey_results (
                 q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
                 n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, 
                 source, version
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (q1, q2, q3, q4, q5, q6, n1, n2, n3, plot_x, plot_y, session_id, 
-                  hash_email_session, browser, region, source, version))
+            """, (q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
+                  n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region,
+                  source, version))
             
-            # Get and log the ID of the inserted record
             last_id = cursor.lastrowid
             logger.debug(f"Inserted record ID: {last_id}")
-
             conn.commit()
 
-            # Verify the record was inserted
             cursor.execute("SELECT COUNT(*) FROM survey_results")
             count_after = cursor.fetchone()[0]
             logger.debug(f"New record count: {count_after}")
             logger.debug(f"Records added: {count_after - count_before}")
 
-            return last_id  # Return the ID of the inserted record
+            return last_id
 
     except Exception as e:
         logger.error(f"Error inserting record: {str(e)}")
-        logger.error(f"Error type: {type(e)}")
-        logger.error(f"Error args: {e.args}")
-        raise  # Re-raise the exception after logging
+        raise
 
 # Read all records
 def read_all_records():
@@ -166,28 +159,34 @@ def save_survey_results(session_state, question_manager):
         question_manager
     )
 
-    # Calculate N values and plot coordinates (assuming these are needed)
-    # This is a placeholder - adjust according to your actual calculation needs
+    # Calculate N values and plot coordinates
     n1, n2, n3 = calculate_n_values(session_state)
     plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
 
     # Save to database
-    append_record(
-        q1=q1_value,
-        q2=q2_value,
-        q3=q3_value,
-        q4=q4_value,
-        q5=q5_value,
-        q6=q6_value,
-        n1=n1,
-        n2=n2,
-        n3=n3,
-        plot_x=plot_x,
-        plot_y=plot_y,
-        session_id=st.session_state.get('session_id', 'default'),
-        hash_email_session=None  # Add if you implement email hashing
-    )
-
+    try:
+        append_record(
+            q1=q1_value,
+            q2=q2_value,
+            q3=q3_value,
+            q4=q4_value,
+            q5=q5_value,
+            q6=q6_value,
+            n1=n1,
+            n2=n2,
+            n3=n3,
+            plot_x=plot_x,
+            plot_y=plot_y,
+            session_id=st.session_state.get('session_id', 'default'),
+            hash_email_session=None,  # Add if you implement email hashing
+            browser="Unknown",  # Add browser if available
+            region="Unknown",  # Add region if available
+            source="server",  # Adjust as needed
+            version="1.0.0"  # Replace with your actual app version
+        )
+        st.success("✅ Survey results saved successfully.")
+    except Exception as e:
+        st.error(f"❌ Failed to save survey results. Error: {e}")
 
 # Test the setup
 if __name__ == "__main__":
