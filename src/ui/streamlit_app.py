@@ -17,6 +17,7 @@ import logging
 import sys
 
 # Set up logging
+logging.getLogger("watchdog").setLevel(logging.WARNING)
 # logging.basicConfig(level=logging.DEBUG)
 # logger = logging.getLogger(__name__)
 # db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
