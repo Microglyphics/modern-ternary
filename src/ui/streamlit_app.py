@@ -1,9 +1,5 @@
 # src/ui/streamlit_app.py
-<<<<<<< HEAD
 # import sqlite3
-=======
-import sqlite3
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
 from pathlib import Path  # Add this for better path handling
 import streamlit as st
 import platform 
@@ -13,16 +9,11 @@ import uuid
 import json # Add this for JSON logging
 from src.visualization.ternary_plotter import TernaryPlotter
 from src.core.question_manager import QuestionManager
-<<<<<<< HEAD
-=======
-from src.data.db_manager import append_record
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
 from src.visualization.worldview_results import display_results_page
 from version import __version__
 from datetime import datetime
 import logging
 import sys
-<<<<<<< HEAD
 from src.config.database import DatabaseConfig
 from src.data.db_manager import MySQLManager
 
@@ -67,42 +58,6 @@ def get_region_info():
         return platform.node()  # Returns computer's network name
     except:
         return "Unknown Region"
-=======
-import gspread
-from google.oauth2.service_account import Credentials
-
-# Path to SQLite database
-DB_PATH = str(Path(__file__).parent.parent / "data" / "survey_results.db")
-
-# Set up logging
-logging.getLogger("watchdog").setLevel(logging.WARNING)
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
-# Suppress font-finding debug logs
-logging.getLogger("matplotlib.font_manager").setLevel(logging.WARNING)
-logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
-
-# Google Sheets configuration
-SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-CREDS = Credentials.from_service_account_file("src/modernity-worldview-3b29c2214fbb.json", scopes=SCOPE)
-gc = gspread.authorize(CREDS)
-SHEET_ID = "1prTJl_fBBaLAPyIyvF2_OzyBWw_CsT8m4MfCckCKDKI"
-
-def get_browser_info():
-    """Get basic system information as a browser placeholder."""
-    try:
-        return platform.system()  # Returns 'Windows', 'Linux', 'Darwin', etc.
-    except:
-        return "Unknown"
-
-def get_region_info():
-    """Get basic region information."""
-    try:
-        return platform.node()  # Returns the computer's network name.
-    except:
-        return "Unknown"
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
 
 # Initialize question manager and ternary plotter
 question_manager = QuestionManager("src/data/questions_responses.json")
@@ -119,11 +74,8 @@ def initialize_session():
 def get_environment_source():
     """Determine if we're running locally or on server"""
     cwd = os.getcwd()
-<<<<<<< HEAD
     # logger.debug(f"BEGIN ENVIRONMENT CHECK ---------------")
     # logger.debug(f"Current working directory: {cwd}")
-=======
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
     
     # Add detailed checks
     env_details = {
@@ -132,7 +84,6 @@ def get_environment_source():
         'in_path': '/mount/src' in cwd,
         'full_path': os.path.abspath(cwd)
     }
-<<<<<<< HEAD
     # logger.debug(f"Environment details: {env_details}")
     
     # Check if we're in production
@@ -151,18 +102,6 @@ def calculate_n_values(session_state):
     question_keys = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6']
 
     # Aggregate scores
-=======
-    # Check if we're in production
-    is_production = '/mount/src' in cwd
-    source = 'server' if is_production else 'local'
-    return source
-
-def calculate_n_values(session_state):
-    """Calculate N values from response scores"""
-    total_scores = [0, 0, 0]  # [PreModern, Modern, PostModern]
-    question_keys = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6']
-    
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
     for q_key in question_keys:
         response_r_value = session_state.get(f"{q_key}_r_value")
         if response_r_value is not None:
@@ -171,7 +110,6 @@ def calculate_n_values(session_state):
             if selected_response:
                 scores = selected_response["scores"]
                 total_scores = [a + b for a, b in zip(total_scores, scores)]
-<<<<<<< HEAD
 
     # Calculate percentages and normalize if the sum exceeds 100
     raw_sum = sum(total_scores)
@@ -187,16 +125,6 @@ def calculate_n_values(session_state):
         return n1, n2, n3
 
     # Return zero values if no questions were answered
-=======
-    
-    # Convert to percentages
-    total = sum(total_scores)
-    if total > 0:
-        n1 = int((total_scores[0] / total) * 100)
-        n2 = int((total_scores[1] / total) * 100)
-        n3 = int((total_scores[2] / total) * 100)
-        return n1, n2, n3
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
     return 0, 0, 0
 
 def calculate_plot_coordinates(n1, n2, n3):
@@ -209,7 +137,6 @@ def calculate_plot_coordinates(n1, n2, n3):
     return 0.0, 0.0
 
 def save_survey_results(session_state):
-<<<<<<< HEAD
     """Save survey results to the database using the response ID numbers."""
     # Store debug info in the session state
     if 'debug_info' not in st.session_state:
@@ -333,113 +260,6 @@ def display_questions_and_responses():
     # print("Query params:", st.query_params)
     # print("Current session state keys:", list(st.session_state.keys()))
     
-=======
-    # Gather necessary data
-    q1_value = session_state.get('Q1_r_value')
-    q2_value = session_state.get('Q2_r_value')
-    q3_value = session_state.get('Q3_r_value')
-    q4_value = session_state.get('Q4_r_value')
-    q5_value = session_state.get('Q5_r_value')
-    q6_value = session_state.get('Q6_r_value')
-
-    n1, n2, n3 = calculate_n_values(session_state)
-    plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
-
-    browser = get_browser_info()
-    region = get_region_info()
-    source = get_environment_source()  # Determine if running locally or on the server
-
-    # Create record dictionary
-    record = {
-        "q1_response": q1_value,
-        "q2_response": q2_value,
-        "q3_response": q3_value,
-        "q4_response": q4_value,
-        "q5_response": q5_value,
-        "q6_response": q6_value,
-        "n1": n1,
-        "n2": n2,
-        "n3": n3,
-        "plot_x": plot_x,
-        "plot_y": plot_y,
-        "session_id": st.session_state.get('session_id', 'default'),
-        "hash_email_session": None,
-        "browser": browser,
-        "region": region,
-        "source": source,
-        "version": __version__,
-    }
-
-    try:
-        # Save to the database
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO survey_results (
-                    q1_response, q2_response, q3_response, q4_response, q5_response, q6_response,
-                    n1, n2, n3, plot_x, plot_y, session_id, hash_email_session, browser, region, source, version
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (
-                record["q1_response"], record["q2_response"], record["q3_response"],
-                record["q4_response"], record["q5_response"], record["q6_response"],
-                record["n1"], record["n2"], record["n3"], record["plot_x"], record["plot_y"],
-                record["session_id"], record["hash_email_session"], record["browser"],
-                record["region"], record["source"], record["version"]
-            ))
-            conn.commit()
-
-            # Retrieve the auto-generated ID and timestamp
-            record["id"] = cursor.lastrowid
-            cursor.execute("SELECT timestamp FROM survey_results WHERE id = ?", (record["id"],))
-            record["timestamp"] = cursor.fetchone()[0]
-
-        st.success("✅ Data saved to the database.")
-
-        # Save to Google Sheets
-        save_to_gsheet(record)
-
-    except Exception as e:
-        st.error("❌ Save failed.")
-        st.error(f"Error: {e}")
-
-def save_to_gsheet(record):
-    """
-    Save the given record to Google Sheets.
-    """
-    try:
-        sheet = gc.open_by_key(SHEET_ID).worksheet("Responses")
-        
-        # Convert record to row format for Google Sheets
-        row = [
-            record.get("id", ""),
-            record.get("timestamp", ""),
-            record.get("q1_response", ""),
-            record.get("q2_response", ""),
-            record.get("q3_response", ""),
-            record.get("q4_response", ""),
-            record.get("q5_response", ""),
-            record.get("q6_response", ""),
-            record.get("n1", ""),
-            record.get("n2", ""),
-            record.get("n3", ""),
-            record.get("plot_x", ""),
-            record.get("plot_y", ""),
-            record.get("session_id", ""),
-            record.get("hash_email_session", ""),
-            record.get("browser", ""),
-            record.get("region", ""),
-            record.get("source", ""),
-            record.get("version", "")
-        ]
-        sheet.append_row(row)
-        st.success("✅ Data saved to Google Sheets successfully.")
-    except Exception as e:
-        st.error("❌ Failed to save data to Google Sheets.")
-        st.error(f"Error Details: {type(e).__name__}: {e}")
-   
-def display_questions_and_responses():
-  
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
     # Force scroll to top on initialization
     if 'init' not in st.query_params:
     #    print("No init param found - adding it")
@@ -545,10 +365,7 @@ def display_results_and_chart():
     individual_scores = []  # Store individual scores
     n1, n2, n3 = 0, 0, 0  # Initialise aggregate scores
 
-<<<<<<< HEAD
     # Collect responses and calculate scores
-=======
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
     for q_key in question_keys:
         question_text = question_manager.get_question_text(q_key)
         response_r_value = st.session_state.get(f"{q_key}_r_value", None)
@@ -575,15 +392,12 @@ def display_results_and_chart():
     total = n1 + n2 + n3
     avg_score = [n1 / total * 100, n2 / total * 100, n3 / total * 100] if total > 0 else None
 
-<<<<<<< HEAD
     # Calculate plot coordinates
     if total > 0:
         plot_x, plot_y = calculate_plot_coordinates(n1, n2, n3)
     else:
         plot_x, plot_y = 0.0, 0.0
 
-=======
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
     # Display ternary plot if we have valid scores
     if individual_scores and avg_score:
         chart = plotter.create_plot(user_scores=individual_scores, avg_score=avg_score)
@@ -606,7 +420,6 @@ def display_results_and_chart():
     with col2:
         if st.button("View Detailed Analysis"):
             # Save to database before proceeding to detailed results
-<<<<<<< HEAD
             db.save_response(
                 responses={
                     "Q1": st.session_state.get("Q1_r_value"),
@@ -628,10 +441,6 @@ def display_results_and_chart():
                 }
             )
 
-=======
-            save_survey_results(st.session_state)
-            
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
             # Store data for detailed results
             st.session_state.final_scores = avg_score
             st.session_state.individual_scores = individual_scores
@@ -641,32 +450,18 @@ def display_results_and_chart():
                 "Knowledge Acquisition": responses_summary.get("Q3", ("", "No response"))[1],
                 "World View": responses_summary.get("Q4", ("", "No response"))[1],
                 "Societal Values": responses_summary.get("Q5", ("", "No response"))[1],
-<<<<<<< HEAD
                 "Identity": responses_summary.get("Q6", ("", "No response"))[1],
             }
             st.session_state.page = "detailed_results"
             st.rerun()
-=======
-                "Identity": responses_summary.get("Q6", ("", "No response"))[1]
-            }
-            st.session_state.page = "detailed_results"
-            ### st.rerun()
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
 
     # Display version number in footer
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("---")  # Single horizontal line
     st.markdown(
-<<<<<<< HEAD
         f"<span style='font-size:10pt;'>Survey Version: {__version__}</span>", 
         unsafe_allow_html=True
     )
-=======
-    f"<span style='font-size:10pt;'>Survey Version: {__version__}</span>", 
-    unsafe_allow_html=True
-)
-
->>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
 
 def display_detailed_results():
     """Display the detailed results page"""
