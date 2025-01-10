@@ -66,6 +66,7 @@ questionnaire_plotter.py
 
 # Ignore workspace settings
 TernaryChartProject.code-workspace
+.env
 
 # Ignore images and generated charts
 ternary_chart.png

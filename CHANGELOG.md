@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-01-10
+### Changed
+- Migrated from SQLite to MySQL on Google Cloud.
+- Updated table schema to support aggregate scores (`n1`, `n2`, `n3`) with values between 0 and 600.
+- Added constraints for question responses (`q1_response` to `q6_response`) to ensure values are between 1 and 6.
+
+### Fixed
+- Normalized scores to handle large aggregates correctly.
+
 ## [1.1.4] - 2025-01-07
 ### Added
 - No Adds

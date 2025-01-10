@@ -53,6 +53,7 @@ typing_extensions==4.12.2
 tzdata==2024.2
 urllib3==2.3.0
 watchdog==6.0.0
+mysql-connector-python==8.2.0  # MySQL client
 requests>=2.32.3
 user-agents>=2.2.0
 gspread>=5.0.0
