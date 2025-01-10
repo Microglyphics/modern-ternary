@@ -5,5 +5,8 @@
 	symlinks = false
 	ignorecase = true
 [remote "origin"]
-	url = https://github.com/Microglyphics/modern-ternary.git
+	url = git@github.com:Microglyphics/modern-ternary.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
