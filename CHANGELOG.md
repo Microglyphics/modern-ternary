@@ -2,6 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
+<<<<<<< HEAD
 ## [1.2.0] - 2025-01-10
 ### Changed
 - Migrated from SQLite to MySQL on Google Cloud.
@@ -11,6 +12,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Normalized scores to handle large aggregates correctly.
 
+=======
+>>>>>>> 1c57377cd9cc23cf810c8fa1bd10797379805b19
 ## [1.1.4] - 2025-01-07
 ### Added
 - No Adds
