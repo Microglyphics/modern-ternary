@@ -8,7 +8,6 @@ import logging
 from typing import Dict, List, Optional
 from contextlib import contextmanager
 
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -41,9 +40,9 @@ class MySQLManager:
         """Save a survey response to the database."""
         try:
             # Debugging output
-            logger.debug(f"Saving responses: {responses}")
-            logger.debug(f"Scores to insert: n1={scores[0]}, n2={scores[1]}, n3={scores[2]}")
-            logger.debug(f"Metadata: {metadata}")
+            # logger.debug(f"Saving responses: {responses}")
+            # logger.debug(f"Scores to insert: n1={scores[0]}, n2={scores[1]}, n3={scores[2]}")
+            # logger.debug(f"Metadata: {metadata}")
 
             # Insert into the database
             with self.get_connection() as conn:

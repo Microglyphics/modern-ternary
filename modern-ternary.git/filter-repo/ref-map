@@ -1,0 +1,9 @@
+old                                      new                                      ref
+6fa0de817dd9b59a2c8796e051c3a736c0c1a63b e383ee8e3138d4a8b25d1430140afb0b8f089986 refs/heads/gsheets
+0c228d262c5cea6f8ca82f62ef106362d6bc9ed2 1c57377cd9cc23cf810c8fa1bd10797379805b19 refs/heads/main
+09b756915dd23217149b93a330efb9b143305737 c7b8880f3347464001f019794147ee89a3af9bf4 refs/heads/pdf_report_v3
+fb33daeb6ce87d1a5900a174de5aa9f854264afe a2e0e2529fa25860a4eb479bcc2fbaaa4148440b refs/tags/v1.1.0
+6163bee4a5bdd31bfe5afa9f9c4fc8c6dbe5f320 d0c0181a2d85f0d349b0c19cfcdd9ff7604e7ea2 refs/tags/v1.1.1
+5487fc26b67e51795256bc817e530f871afbfc30 4fe7f0f10c092aaf61cb7766f61dd11c23ed6e4e refs/tags/v1.1.2
+24892bd16ecc8ec0ac56597a161ee99d6cf1b5ba 6a9dc3075728969dbf728e9beb329e11c6268264 refs/tags/v1.1.3
+82b7c3b62af3bc73fad8abf2c1adeb23a131c4a4 495c9cb87a4bc7c47e02a7a5698d563f8ffb30aa refs/tags/v1.1.4

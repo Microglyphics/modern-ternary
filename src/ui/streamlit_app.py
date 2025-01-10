@@ -1,5 +1,5 @@
 # src/ui/streamlit_app.py
-import sqlite3
+# import sqlite3
 from pathlib import Path  # Add this for better path handling
 import streamlit as st
 import platform 
@@ -24,26 +24,26 @@ db = MySQLManager(db_config)
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
-logger.debug(f"DB Path: {db_path}")
-logger.debug(f"Database Exists: {os.path.exists(db_path)}")
+# db_path = str(Path(__file__).parent.parent / "data" / "survey_results.db")
+# logger.debug(f"DB Path: {db_path}")
+# logger.debug(f"Database Exists: {os.path.exists(db_path)}")
 
-def log_table_contents():
-    try:
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            tables = cursor.fetchall()
-            logger.debug(f"Tables in database: {tables}")
+# def log_table_contents():
+#     try:
+#         with sqlite3.connect(db_path) as conn:
+#             cursor = conn.cursor()
+#             cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+#             tables = cursor.fetchall()
+#             logger.debug(f"Tables in database: {tables}")
           
-            # Log contents of the first table
-            if tables:
-                first_table = tables[0][0]
-                cursor.execute(f"SELECT * FROM {first_table} LIMIT 5")
-                records = cursor.fetchall()
-                logger.debug(f"Contents of {first_table}: {records}")
-    except Exception as e:
-        logger.error(f"Error logging table contents: {e}", exc_info=True)
+#             # Log contents of the first table
+#             if tables:
+#                 first_table = tables[0][0]
+#                 cursor.execute(f"SELECT * FROM {first_table} LIMIT 5")
+#                 records = cursor.fetchall()
+#                 logger.debug(f"Contents of {first_table}: {records}")
+#     except Exception as e:
+#         logger.error(f"Error logging table contents: {e}", exc_info=True)
 
 def get_browser_info():
     """Get basic system information as a browser placeholder"""
@@ -161,22 +161,22 @@ def save_survey_results(session_state):
         st.write(f"Database exists: {'✅' if st.session_state.debug_info['db_exists'] else '❌'}")
         
         # Log record count before save
-        try:
-            with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM survey_results")
-                count_before = cursor.fetchone()[0]
-                st.session_state.debug_info['count_before'] = count_before
-                st.write(f"Records before save: {count_before}")
+        # try:
+        #     with sqlite3.connect(db_path) as conn:
+        #         cursor = conn.cursor()
+        #         cursor.execute("SELECT COUNT(*) FROM survey_results")
+        #         count_before = cursor.fetchone()[0]
+        #         st.session_state.debug_info['count_before'] = count_before
+        #         st.write(f"Records before save: {count_before}")
                 
-                # Also check if table exists
-                # cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='survey_results'")
-                # tables = cursor.fetchall()
-                # st.session_state.debug_info['tables'] = tables
-                # st.write(f"Found tables: {tables}")
-        except Exception as e:
-            st.error(f"Error checking record count: {e}")
-            st.session_state.debug_info['error'] = str(e)
+        #         # Also check if table exists
+        #         # cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='survey_results'")
+        #         # tables = cursor.fetchall()
+        #         # st.session_state.debug_info['tables'] = tables
+        #         # st.write(f"Found tables: {tables}")
+        # except Exception as e:
+        #     st.error(f"Error checking record count: {e}")
+        #     st.session_state.debug_info['error'] = str(e)
 
         # Calculate N values and plot coordinates
         n1, n2, n3 = calculate_n_values(session_state)
