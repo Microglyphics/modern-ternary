@@ -1,7 +1,7 @@
 # src/config/database.py
 import os
 from typing import Dict
-
+print("Current Working Directory:", os.getcwd())
 class DatabaseConfig:
     @staticmethod
     def get_db_config() -> Dict[str, str]:
