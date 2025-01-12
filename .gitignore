@@ -80,3 +80,5 @@ Response Permutations.csv
 Response Permutations.xlsx
 Modernity Worldview Home Page.docx
 Ternary plot.sqbpro
+env_secrets.yaml
+*.code-workspace
