@@ -6,7 +6,7 @@ instance_class: F1
 env_variables:
   DB_HOST: "/cloudsql/modernity-worldview:us-central1:modernity-db"
   DB_USER: "app_user"
-  DB_PASSWORD: "9pQK?fJF.9Lm]nv;"  
+  DB_PASSWORD: "REPLACE WITH PASSWORD"  
   DB_NAME: "modernity_survey"
   DB_PORT: "3306"
   NODE_ENV: "production"

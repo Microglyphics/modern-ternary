@@ -24,6 +24,7 @@ __pycache__/
 !.env.example
 .vscode/
 .idea/
+frontend/app.yaml
 
 # OS
 .DS_Store
@@ -58,4 +59,4 @@ cloud-sql-proxy*
 *.doc
 # Only track markdown documentation
 *.sqlite
-*.db
+*.dbenv_secrets.yaml
