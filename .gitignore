@@ -1,84 +1,61 @@
-# Byte-compiled / optimized / DLL files
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.code-workspace
+.idea/
+
+# Dependencies
+node_modules/
+/venv/
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
 
-# Packages
-*.egg
+# Build outputs
+/frontend/.svelte-kit/
+/frontend/build/
+/dist/
 *.egg-info/
-dist/
-build/
-eggs/
-parts/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg-info/
-pip-wheel-metadata/
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Virtual environment
-.venv/
-env/
-venv/
-ENV/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# macOS files
-.DS_Store
-*.AppleDouble
-.AppleDB
-
-# Linux/macOS swap files
-*.swp
-*.swo
-*.~lock.*
-
-# SQLite database
-responses.db
-
-# Logs and temporary files
-*.log
-*.tmp
-*.bak
-
-# Streamlit deployment files
-.streamlit/
-
-# IDE files
+# Environment & Local Config
+.env
+.env.*
+!.env.example
 .vscode/
 .idea/
-*.sublime-workspace
 
-# Ignore local Python scripts used for testing or debugging
-debug_question1_chart.py
-q_modern.py
-q1_test.py
-questionnaire_full.py
-questionnaire_plotter.py
+# OS
+.DS_Store
+Thumbs.db
 
-# Ignore workspace settings
-TernaryChartProject.code-workspace
-.env
+# Legacy/Migration
+/src/streamlit/
+/src/visualization/
+modern-ternary.git/
+*.log
 
-# Ignore images and generated charts
-ternary_chart.png
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
 questionnaire_responses.db
-test_streamlit.py
-src/questions/question_manager_OLD.py
 
+# Binary files
+*.exe
+cloud-sql-proxy*
+*.dll
+*.so
+*.dylib
 
-# Ignore working files
-Response Permutations.csv
-Response Permutations.xlsx
-Modernity Worldview Home Page.docx
-Ternary plot.sqbpro
-env_secrets.yaml
-*.code-workspace
+# Documentation artifacts
+*.docx
+*.pdf
+*.doc
+# Only track markdown documentation
+*.sqlite
+*.db

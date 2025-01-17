@@ -1,0 +1,136 @@
+{
+    "categories": {
+      "Source of Truth": {
+        "PreModern": {
+          "score_pattern": [100, 0, 0],
+          "response": "Truth is given by divine or spiritual authority. This perspective reflects a deep appreciation for transcendent wisdom and eternal principles. Such individuals often find profound meaning and guidance through spiritual traditions, recognising truth as something revealed rather than constructed or discovered. This approach provides a stable foundation for understanding life's fundamental questions."
+        },
+        "Modern": {
+          "score_pattern": [0, 100, 0],
+          "response": "Truth is discovered through empirical evidence. This outlook represents a commitment to systematic investigation and verifiable knowledge. Such individuals value clarity and precision in understanding the world, finding confidence in methods that can be tested and replicated. This approach helps separate reliable information from speculation."
+        },
+        "PostModern": {
+          "score_pattern": [0, 0, 100],
+          "response": "Truth is shaped by cultural or personal perspectives. This viewpoint acknowledges the rich complexity of human experience and understanding. Such individuals recognise how different contexts and viewpoints can illuminate different aspects of truth, appreciating the diverse ways people make sense of their world. This approach enables deep empathy and cultural understanding."
+        },
+        "PreModern-Modern": {
+          "score_pattern": [50, 50, 0],
+          "response": "Truth is primarily divine but interpreted through reason. This perspective skillfully bridges spiritual insight with rational analysis. Such individuals recognise the value of both revelatory knowledge and careful reasoning, finding ways to harmonise eternal principles with systematic understanding. This approach offers a comprehensive framework for engaging with both transcendent and practical truths."
+        },
+        "Modern-Balanced": {
+          "score_pattern": [25, 50, 25],
+          "response": "Truth is mostly objective but influenced by culture. This outlook balances empirical rigour with contextual awareness. Such individuals appreciate how verifiable facts interact with cultural interpretations, recognising that while truth can be objective, our approach to it is often shaped by our perspective. This view enables both practical investigation and cultural sensitivity."
+        }
+      },
+      "Understanding the World": {
+        "PreModern": {
+          "score_pattern": [100, 0, 0],
+          "response": "Understand the world through sacred traditions. This perspective values the accumulated wisdom of spiritual and cultural heritage. Such individuals find deep meaning in traditional ways of knowing, recognising patterns and truths that have stood the test of time. This approach provides a rich framework for understanding both the visible and invisible aspects of reality."
+        },
+        "Modern": {
+          "score_pattern": [0, 100, 0],
+          "response": "Understand the world by uncovering universal principles. This outlook reflects a commitment to discovering fundamental laws and patterns. Such individuals find clarity through systematic observation and analysis, appreciating how underlying principles can explain complex phenomena. This approach enables powerful predictive and practical applications."
+        },
+        "PostModern": {
+          "score_pattern": [0, 0, 100],
+          "response": "Critique and question established assumptions. This viewpoint emphasises the importance of examining inherited beliefs and frameworks. Such individuals value the process of uncovering hidden assumptions and alternative perspectives, recognising how different viewpoints can reveal new understandings. This approach enables continuous learning and adaptation."
+        },
+        "PreModern-Modern": {
+          "score_pattern": [50, 50, 0],
+          "response": "Sacred stories reveal truths but must align with reason. This perspective integrates traditional wisdom with analytical thinking. Such individuals appreciate how timeless teachings can be understood through rational examination, finding harmony between inherited knowledge and logical analysis. This approach offers both depth and clarity."
+        },
+        "Modern-Balanced": {
+          "score_pattern": [25, 50, 25],
+          "response": "Universal principles exist but are shaped by culture. This outlook balances the search for fundamental truths with cultural awareness. Such individuals recognise how basic principles manifest differently across contexts, appreciating both consistency and variety in human understanding. This approach enables both practical application and cultural sensitivity."
+        }
+      },
+      "Knowledge Acquisition": {
+        "PreModern": {
+          "score_pattern": [100, 0, 0],
+          "response": "Knowledge is gained through spiritual intuition. This perspective values direct insight and revealed wisdom. Such individuals appreciate the role of contemplation and spiritual practice in understanding deep truths. This approach opens pathways to profound personal and transcendent knowledge."
+        },
+        "Modern": {
+          "score_pattern": [0, 100, 0],
+          "response": "Knowledge is gained through logical reasoning. This outlook emphasises systematic thought and careful analysis. Such individuals value clear chains of reasoning and verifiable conclusions. This approach enables reliable and reproducible understanding."
+        },
+        "PostModern": {
+          "score_pattern": [0, 0, 100],
+          "response": "Knowledge is gained by questioning existing ideas. This viewpoint prioritises critical examination and fresh perspectives. Such individuals find value in challenging assumptions and exploring alternative viewpoints. This approach leads to innovative insights and deeper understanding."
+        },
+        "PreModern-Modern": {
+          "score_pattern": [50, 50, 0],
+          "response": "Mystical insights must be balanced with reasoning. This perspective combines intuitive understanding with analytical thought. Such individuals appreciate how different modes of knowing can complement and verify each other. This approach offers both depth and reliability."
+        },
+        "Modern-Balanced": {
+          "score_pattern": [25, 50, 25],
+          "response": "Logical reasoning is essential but subjective. This outlook recognises the importance of both systematic thought and personal perspective. Such individuals value careful analysis while remaining aware of its limitations and contexts. This approach enables both rigour and flexibility."
+        }
+      },
+      "World View": {
+        "PreModern": {
+          "score_pattern": [100, 0, 0],
+          "response": "The world is governed by a divine cosmic order. This perspective sees meaning and purpose woven into reality's fabric. Such individuals appreciate the interconnected and purposeful nature of existence. This approach provides a coherent framework for understanding life's patterns and purpose."
+        },
+        "Modern": {
+          "score_pattern": [0, 100, 0],
+          "response": "The world progresses through scientific advancements. This outlook emphasises humanity's growing understanding and capabilities. Such individuals value how systematic knowledge can improve life and solve problems. This approach enables practical solutions and continuous improvement."
+        },
+        "PostModern": {
+          "score_pattern": [0, 0, 100],
+          "response": "The world is a critique of traditional systems. This viewpoint examines how established structures shape our understanding. Such individuals appreciate the role of perspective and power in worldviews. This approach enables social awareness and systemic change."
+        },
+        "PreModern-Modern": {
+          "score_pattern": [50, 50, 0],
+          "response": "Cosmic order exists, but progress plays a role. This perspective balances eternal principles with human advancement. Such individuals find harmony between timeless wisdom and growing knowledge. This approach offers both stability and development."
+        },
+        "Modern-Balanced": {
+          "score_pattern": [25, 50, 25],
+          "response": "Progress must be critically examined through irony. This outlook values advancement while maintaining perspective. Such individuals appreciate how progress occurs within cultural and historical contexts. This approach enables both development and reflection."
+        }
+      },
+      "Societal Values": {
+        "PreModern": {
+          "score_pattern": [100, 0, 0],
+          "response": "Societal values follow established traditions. This perspective recognises the wisdom embedded in cultural heritage. Such individuals appreciate how traditional values provide stable foundations for community life. This approach enables social cohesion and cultural continuity."
+        },
+        "Modern": {
+          "score_pattern": [0, 100, 0],
+          "response": "Values are guided by objective, neutral standards. This outlook seeks universal principles for ethical behavior. Such individuals value clear, rational frameworks for moral decisions. This approach enables consistent and justifiable ethical choices."
+        },
+        "PostModern": {
+          "score_pattern": [0, 0, 100],
+          "response": "Values adapt to subjective or situational contexts. This viewpoint acknowledges how different situations may require different approaches. Such individuals appreciate the role of context in ethical decisions. This approach enables flexible and culturally sensitive responses."
+        },
+        "PreModern-Modern": {
+          "score_pattern": [50, 50, 0],
+          "response": "Respect traditions but balance with objectivity. This perspective combines inherited wisdom with rational analysis. Such individuals find ways to honor traditional values while examining them thoughtfully. This approach offers both roots and adaptability."
+        },
+        "Modern-Balanced": {
+          "score_pattern": [25, 50, 25],
+          "response": "Objective standards must consider subjective contexts. This outlook balances universal principles with situational awareness. Such individuals recognise how general rules interact with specific circumstances. This approach enables both consistency and flexibility."
+        }
+      },
+      "Identity": {
+        "PreModern": {
+          "score_pattern": [100, 0, 0],
+          "response": "Identity is defined by one's role in a community. This perspective values how individuals fit within larger social contexts. Such individuals appreciate the meaning and purpose found in community relationships. This approach enables strong social bonds and clear purpose."
+        },
+        "Modern": {
+          "score_pattern": [0, 100, 0],
+          "response": "Identity is discovered through personal authenticity. This outlook emphasises individual self-discovery and expression. Such individuals value the journey of understanding and being true to oneself. This approach enables personal growth and genuine self-expression."
+        },
+        "PostModern": {
+          "score_pattern": [0, 0, 100],
+          "response": "Identity is fluid and changes with contexts. This viewpoint recognises how identity shifts across different situations. Such individuals appreciate the dynamic nature of self-expression. This approach enables adaptability and multiple ways of being."
+        },
+        "PreModern-Modern": {
+          "score_pattern": [50, 50, 0],
+          "response": "Identity is collective but allows personal expression. This perspective balances community roles with individual authenticity. Such individuals find ways to express themselves within traditional frameworks. This approach offers both belonging and personal growth."
+        },
+        "Modern-Balanced": {
+          "score_pattern": [25, 50, 25],
+          "response": "Identity is personal but adapts to fluid contexts. This outlook emphasises authentic self-expression while recognising contextual influences. Such individuals value both personal truth and situational awareness. This approach enables both authenticity and adaptability."
+        }
+      }
+    }
+  }
