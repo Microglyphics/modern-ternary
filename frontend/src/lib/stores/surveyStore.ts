@@ -2,10 +2,12 @@
 import { writable } from 'svelte/store';
 import type { Questions } from '$lib/types/survey';
 
+// src/lib/stores/surveyStore.ts
 export interface SurveyAnswer {
     responseId: string;
     scores: [number, number, number];
-    timestamp: string;
+    timestamp: string;  // Add this back
+    response_num?: number;  // Optional
 }
 
 export interface SurveyStoreState {

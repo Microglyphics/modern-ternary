@@ -1,31 +1,88 @@
-from fastapi import FastAPI, HTTPException
+# server/main.py
+
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
+from sqlalchemy.sql import text
 from typing import Dict, List, Optional
-from src.data.mysql_manager import db_manager
+from db.mysql_manager import DatabaseManager
 import logging
+import time
+import uuid
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+db_manager = DatabaseManager()
+
 class SurveyResponse(BaseModel):
     session_id: str
-    answers: Dict[str, Dict[str, float]]  # Will store scores for each question
-    source: str = 'web'
-    browser: Optional[str] = None
-    version: str = '2.0.0'
+    source: str
+    browser: str
+    q1_response: int
+    q2_response: int
+    q3_response: int
+    q4_response: int
+    q5_response: int
+    q6_response: int
+    n1: float
+    n2: float
+    n3: float
+    plot_x: float
+    plot_y: float
+
+# Add Logging Middleware
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid.uuid4())
+        
+        logger.info(f"=== Request Start [{request_id}] ===")
+        logger.info(f"Method: {request.method}")
+        logger.info(f"URL: {request.url}")
+        logger.info(f"Headers: {dict(request.headers)}")
+        
+        # Get request body for POST/PUT requests
+        if request.method in ["POST", "PUT"]:
+            try:
+                body = await request.body()
+                logger.info(f"Request Body: {body.decode()}")
+                # Reset body position for next reader
+                await request.body()
+            except Exception as e:
+                logger.error(f"Error reading request body: {e}")
+        
+        start_time = time.time()
+        
+        try:
+            response = await call_next(request)
+            
+            process_time = time.time() - start_time
+            logger.info(f"Status code: {response.status_code}")
+            logger.info(f"Process time: {process_time:.3f}s")
+            
+            return response
+        except Exception as e:
+            logger.error(f"Request failed: {str(e)}", exc_info=True)
+            raise
+        finally:
+            logger.info(f"=== Request End [{request_id}] ===")
 
 app = FastAPI()
 
-# CORS middleware
+# Add CORS middleware first
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In development, can be more specific in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add logging middleware
+app.add_middleware(LoggingMiddleware)
 
 @app.get("/api/health")
 async def health_check():
@@ -33,57 +90,16 @@ async def health_check():
 
 @app.post("/api/submit")
 async def submit_survey(response: SurveyResponse):
+    logger.info("=== Starting Survey Submission ===")
     try:
-        print("Received survey response:", response.dict())  # Debug log
+        logger.info(f"Processing survey response: {json.dumps(response.dict(), indent=2)}")
         
-        # Initialize db_record with required fields
-        db_record = {
-            "session_id": response.session_id,
-            "source": response.source,
-            "browser": response.browser,
-            "q1_response": None,
-            "q2_response": None,
-            "q3_response": None,
-            "q4_response": None,
-            "q5_response": None,
-            "q6_response": None,
-            "n1": 0,
-            "n2": 0,
-            "n3": 0,
-            "plot_x": 0.0,
-            "plot_y": 0.0
-        }
+        db_record = response.dict()
+        logger.info(f"Prepared database record: {json.dumps(db_record, indent=2)}")
 
-        # Process responses ensuring values are within constraints
-        total_scores = [0, 0, 0]
-        for question_id, answer_data in response.answers.items():
-            q_num = int(question_id.replace('Q', ''))
-            response_num = answer_data.get('response_num', 1)
-            # Ensure response is within 1-6 range
-            response_num = max(1, min(6, response_num))
-            db_record[f'q{q_num}_response'] = response_num
-
-            # Accumulate scores
-            scores = answer_data.get('scores', [0, 0, 0])
-            total_scores = [total_scores[i] + scores[i] for i in range(3)]
-
-        # Calculate averages
-        num_questions = len(response.answers)
-        if num_questions > 0:
-            db_record['n1'] = min(600, max(0, round((total_scores[0] / num_questions) * 6)))
-            db_record['n2'] = min(600, max(0, round((total_scores[1] / num_questions) * 6)))
-            db_record['n3'] = min(600, max(0, round((total_scores[2] / num_questions) * 6)))
-            
-            # Calculate plot coordinates
-            db_record['plot_x'] = float(((db_record['n2'] - db_record['n1']) / 6))
-            db_record['plot_y'] = float(((db_record['n3'] - ((db_record['n1'] + db_record['n2']) / 2)) / 6))
-
-        print("Final DB record:", db_record)  # Debug log
-
-        # Insert with explicit transaction
         with db_manager.get_session() as session:
             try:
-                query = """
+                query = text("""
                     INSERT INTO survey_results 
                     (session_id, q1_response, q2_response, q3_response, 
                     q4_response, q5_response, q6_response, n1, n2, n3, 
@@ -92,22 +108,53 @@ async def submit_survey(response: SurveyResponse):
                     (:session_id, :q1_response, :q2_response, :q3_response,
                     :q4_response, :q5_response, :q6_response, :n1, :n2, :n3,
                     :plot_x, :plot_y, :source, :browser)
-                """
+                """)
+                
+                logger.info("Executing INSERT query")
                 result = session.execute(query, db_record)
-                session.commit()  # Explicitly commit the transaction
-                print("Insert successful, rows affected:", result.rowcount)
-                
+                session.commit()
+                logger.info("Database commit successful")
+
                 # Verify the insert
-                verify_query = "SELECT id FROM survey_results WHERE session_id = :session_id"
-                verify_result = session.execute(verify_query, {"session_id": response.session_id}).fetchone()
-                print("Verified insert, new record id:", verify_result[0] if verify_result else None)
+                verify_query = text(
+                    "SELECT id FROM survey_results WHERE session_id = :session_id"
+                )
+                verify_result = session.execute(
+                    verify_query, 
+                    {"session_id": response.session_id}
+                ).fetchone()
                 
-                return {"status": "success", "session_id": response.session_id}
+                if verify_result:
+                    logger.info(f"Record verified with ID: {verify_result[0]}")
+                    return {
+                        "status": "success",
+                        "message": "Survey response recorded successfully",
+                        "record_id": verify_result[0]
+                    }
+                else:
+                    logger.error("Insert verification failed - no record found")
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Database insert could not be verified"
+                    )
+
             except Exception as db_error:
+                logger.error(f"Database error: {str(db_error)}", exc_info=True)
                 session.rollback()
-                print("Database error:", str(db_error))
-                raise HTTPException(status_code=500, detail=f"Database error: {str(db_error)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Database error: {str(db_error)}"
+                )
     
     except Exception as e:
-        print("General error:", str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Submission error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    finally:
+        logger.info("=== Survey Submission Complete ===")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

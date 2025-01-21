@@ -1,6 +1,29 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+# Changelog
+
+## [2.0.1] - 2024-01-20
+### Fixed
+- Database connectivity using Cloud SQL Proxy for development
+- Proper environment configuration for database access
+- Enhanced error logging and handling
+
+### Added
+- Development setup documentation
+- Cloud SQL Proxy integration
+- Startup scripts for development environment
+
+### Technical Debt Notes
+- Version number capture in database needs to be restored
+- File structure consolidation to be completed:
+  - Review duplicate survey form implementations
+  - Consolidate database access patterns
+  - Streamline configuration management
+
+## [2.0.0] - Previous Release
+- Initial codebase consolidation
+- First port to Google Cloud Fast API to Google Cloud MySQL environment
 
 ## [1.2.0] - 2025-01-10
 ### Changed
