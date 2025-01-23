@@ -1,0 +1,17 @@
+runtime: python311
+entrypoint: gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
+
+env_variables:
+  DB_NAME: "modernity_survey"
+  DB_HOST: "/cloudsql/modernity-worldview:us-central1:modernity-db"
+  DB_PORT: "3306"
+  DB_USER: "app_user"
+  ENV: "production"
+
+handlers:
+- url: /.*
+  script: auto
+  secure: always
+    
+includes:
+  - env_secrets.yaml
