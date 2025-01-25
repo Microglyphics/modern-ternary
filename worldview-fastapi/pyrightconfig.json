@@ -1,7 +1,9 @@
 {
     "include": ["src", "."],
-    "venvPath": "./venv",
-    "venv": ".",
-    "extraPaths": ["./src", "."],
-    "reportMissingImports": false
+    "venvPath": ".",
+    "venv": "venv",
+    "extraPaths": [".", "src"],
+    "reportMissingImports": true,
+    "pythonPlatform": "Windows",
+    "pythonVersion": "3.9"
   }

@@ -10,4 +10,4 @@ timeout = 120
 
 # Module imports config
 chdir = os.path.dirname(os.path.abspath(__file__))
-pythonpath = os.path.dirname(chdir)
+pythonpath = os.path.dirnam

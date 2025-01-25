@@ -1,5 +1,6 @@
 # main.py
 import os
+from pathlib import Path
 import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,25 @@ import uuid
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Get base directory for data files
+BASE_DIR = Path(__file__).resolve().parent
+
+def load_questions():
+    try:
+        with open(BASE_DIR / "src" / "data" / "questions_responses.json") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading questions: {e}")
+        raise HTTPException(status_code=500, detail="Error loading questions")
+
+def load_templates():
+    try:
+        with open(BASE_DIR / "src" / "data" / "response_templates.json") as f:
+            return json.load(f)["categories"]
+    except Exception as e:
+        logger.error(f"Error loading templates: {e}")
+        raise HTTPException(status_code=500, detail="Error loading templates")
 
 app = FastAPI(
     title="Modernity Worldview Analysis API",

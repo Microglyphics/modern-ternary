@@ -1,6 +1,18 @@
 # models.py
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel
+from typing import List, Dict, Optional
+
+class Response(BaseModel):
+    id: str
+    text: str
+    scores: List[float]
+
+class Question(BaseModel):
+    text: str
+    responses: List[Response]
+
+class Questions(BaseModel):
+    questions: Dict[str, Question]
 
 class SurveyResponse(BaseModel):
     session_id: Optional[str] = None
