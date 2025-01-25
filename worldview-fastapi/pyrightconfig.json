@@ -1,0 +1,7 @@
+{
+    "include": ["src", "."],
+    "venvPath": "./venv",
+    "venv": ".",
+    "extraPaths": ["./src", "."],
+    "reportMissingImports": false
+  }

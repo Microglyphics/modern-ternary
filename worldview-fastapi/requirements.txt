@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+mysql-connector-python
+pydantic
+google-cloud-secret-manager
+python-dotenv

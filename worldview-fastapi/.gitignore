@@ -1,0 +1,23 @@
+# Environment
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Development
+cloud_sql_proxy*
+.vscode/
+.idea/
+
+# Build
+*.log
+.pytest_cache/
+build/
+dist/
+
+# Google Cloud
+app.yaml
+
+# VSCode workspace
+worldview.code-workspace
