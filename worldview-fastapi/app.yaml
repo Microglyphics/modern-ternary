@@ -6,10 +6,13 @@ handlers:
   script: auto
   secure: always
 
+# Make includes more explicit
 includes:
-- src/**
+- src/
+- src/data/
+- src/data/questions_responses.json
+- src/data/response_templates.json
 
-# Add this to skip files we don't want to deploy
 skip_files:
 - ^(.*/)?\..*$
 - ^(.*/)?.*\.pyc$
@@ -17,3 +20,6 @@ skip_files:
 - ^(.*/)?.*\.pyd$
 - ^(.*/)?.*_test\.py$
 - ^(.*/)?.*\.md$
+
+env_variables:
+  PYTHONPATH: "/workspace:${PYTHONPATH}"
