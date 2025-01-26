@@ -56,6 +56,77 @@ app.add_middleware(
 # Initialize database manager
 db = DatabaseManager()
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self' https:; "
+        "img-src 'self' https: data:; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
+        "connect-src 'self'"
+    )
+    return response
+
+@app.get("/api/debug")
+async def debug():
+    try:
+        BASE_DIR = Path(__file__).resolve().parent
+        return {
+            "current_dir": str(BASE_DIR),
+            "files": [str(f) for f in BASE_DIR.glob("**/*")],
+            "src_exists": (BASE_DIR / "src").exists(),
+            "data_exists": (BASE_DIR / "src" / "data").exists(),
+            "questions_exists": (BASE_DIR / "src" / "data" / "questions_responses.json").exists()
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/questions")
+async def get_questions():
+    try:
+        BASE_DIR = Path(__file__).resolve().parent
+        questions_path = BASE_DIR / "src" / "data" / "questions_responses.json"
+        logger.info(f"Current directory: {BASE_DIR}")
+        logger.info(f"Attempting to load questions from: {questions_path}")
+        
+        if not questions_path.exists():
+            logger.error(f"File not found at: {questions_path}")
+            # List directory contents to debug
+            logger.info(f"Directory contents: {list(BASE_DIR.glob('**/*'))}")
+            raise FileNotFoundError(f"Questions file not found at {questions_path}")
+            
+        with open(questions_path) as f:
+            questions = json.load(f)
+            logger.info("Successfully loaded questions")
+            return questions
+            
+    except Exception as e:
+        logger.error(f"Error loading questions: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error loading questions: {str(e)}"
+        )
+
+@app.post("/api/submit")
+async def submit_survey(response: SurveyResponse):
+    try:
+        record_id = db.save_response(response.dict())
+        return {
+            "status": "success",
+            "message": "Survey response recorded",
+            "session_id": response.session_id,
+            "record_id": record_id
+        }
+    except Exception as e:
+        logger.error(f"Error saving survey: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/test-survey")
 async def test_survey(survey: SurveyResponse):
     try:

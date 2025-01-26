@@ -16,8 +16,5 @@ cloud_sql_proxy*
 build/
 dist/
 
-# Google Cloud
-app.yaml
-
 # VSCode workspace
 worldview.code-workspace
