@@ -6,13 +6,5 @@ handlers:
   script: auto
   secure: always
 
-skip_files:
-- ^(.*/)?\..*$
-- ^(.*/)?.*\.pyc$
-- ^(.*/)?.*\.pyo$
-- ^(.*/)?.*\.pyd$
-- ^(.*/)?.*_test\.py$
-- ^(.*/)?.*\.md$
-
 env_variables:
   PYTHONPATH: "/workspace:${PYTHONPATH}"
