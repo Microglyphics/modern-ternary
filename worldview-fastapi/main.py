@@ -72,6 +72,28 @@ async def add_security_headers(request, call_next):
         "connect-src 'self'"
     )
     return response
+@app.get("/")
+async def root():
+    return {
+        "message": "Modernity Worldview Analysis API",
+        "version": "1.0.0",
+        "status": "running"
+    }
+
+@app.get("/health")
+async def health_check():
+    try:
+        # Test database connection
+        db.connect()
+        return {
+            "status": "healthy",
+            "database": "connected"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "database": str(e)
+        }
 
 @app.get("/api/debug")
 async def debug():
@@ -90,28 +112,9 @@ async def debug():
 @app.get("/api/questions")
 async def get_questions():
     try:
-        BASE_DIR = Path(__file__).resolve().parent
-        questions_path = BASE_DIR / "src" / "data" / "questions_responses.json"
-        logger.info(f"Current directory: {BASE_DIR}")
-        logger.info(f"Attempting to load questions from: {questions_path}")
-        
-        if not questions_path.exists():
-            logger.error(f"File not found at: {questions_path}")
-            # List directory contents to debug
-            logger.info(f"Directory contents: {list(BASE_DIR.glob('**/*'))}")
-            raise FileNotFoundError(f"Questions file not found at {questions_path}")
-            
-        with open(questions_path) as f:
-            questions = json.load(f)
-            logger.info("Successfully loaded questions")
-            return questions
-            
+        return {"test": "endpoint exists"}
     except Exception as e:
-        logger.error(f"Error loading questions: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error loading questions: {str(e)}"
-        )
+        return {"error": str(e)}
 
 @app.post("/api/submit")
 async def submit_survey(response: SurveyResponse):
