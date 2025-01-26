@@ -6,13 +6,6 @@ handlers:
   script: auto
   secure: always
 
-# Make includes more explicit
-includes:
-- src/
-- src/data/
-- src/data/questions_responses.json
-- src/data/response_templates.json
-
 skip_files:
 - ^(.*/)?\..*$
 - ^(.*/)?.*\.pyc$
