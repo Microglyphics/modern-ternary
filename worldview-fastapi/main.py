@@ -80,7 +80,7 @@ async def root():
         "status": "running"
     }
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     try:
         # Test database connection
@@ -163,3 +163,11 @@ async def test_survey(survey: SurveyResponse):
             status_code=500,
             detail=f"Error processing survey: {str(e)}"
         )
+    
+@app.post("/api/test")
+async def test_endpoint():
+    return {"message": "test endpoint working"}
+
+@app.get("/api/test-route")
+async def test_route():
+    return {"status": "route exists"}
