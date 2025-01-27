@@ -6,8 +6,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.security import HTTPBasic
-from models import SurveyResponse, Question
-from db_manager import DatabaseManager
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from src.models.models import SurveyResponse, Question
+from src.api.db_manager import DatabaseManager
 import json
 import uuid
 
@@ -17,6 +19,17 @@ logger = logging.getLogger(__name__)
 
 # Get base directory for data files
 BASE_DIR = Path(__file__).resolve().parent
+
+app = FastAPI(
+    title="Modernity Worldview Analysis API",
+    description="API for the Modernity Worldview Analysis survey",
+    version="1.0.0"
+)
+
+# Add after FastAPI initialization
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
 
 def load_questions():
     try:
@@ -33,12 +46,6 @@ def load_templates():
     except Exception as e:
         logger.error(f"Error loading templates: {e}")
         raise HTTPException(status_code=500, detail="Error loading templates")
-
-app = FastAPI(
-    title="Modernity Worldview Analysis API",
-    description="API for the Modernity Worldview Analysis survey",
-    version="1.0.0"
-)
 
 # Add CORS middleware
 app.add_middleware(
@@ -72,6 +79,7 @@ async def add_security_headers(request, call_next):
         "connect-src 'self'"
     )
     return response
+
 @app.get("/")
 async def root():
     return {
@@ -112,9 +120,11 @@ async def debug():
 @app.get("/api/questions")
 async def get_questions():
     try:
-        return {"test": "endpoint exists"}
+        questions = load_questions()
+        return questions
     except Exception as e:
-        return {"error": str(e)}
+        logger.error(f"Error loading questions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/submit")
 async def submit_survey(response: SurveyResponse):
