@@ -26,9 +26,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add after FastAPI initialization
-app.mount("/static", StaticFiles(directory="src/static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# Add after FastAPI initialization (Remark these out for deployment)
+# app.mount("/static", StaticFiles(directory="src/static"), name="static")
+# templates = Jinja2Templates(directory="templates")
 
 
 def load_questions():
