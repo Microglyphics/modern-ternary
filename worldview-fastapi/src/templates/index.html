@@ -4,28 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modernity Worldview Survey</title>
+    
+    <!-- React and Babel -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="/static/css/main.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8">Modernity Worldview Survey</h1>
-        
-        <div id="survey-form" class="space-y-8">
-            <!-- Questions will be dynamically inserted here -->
-        </div>
-
-        <div class="mt-8 flex justify-center">
-            <button 
-                id="submit-survey" 
-                class="px-8 py-3 bg-blue-600 text-white rounded-lg disabled:bg-gray-400"
-                disabled
-            >
-                Submit Survey
-            </button>
-        </div>
-    </div>
-
-    <script src="/static/js/survey.js"></script>
+<body>
+    <div id="root"></div>
+    
+    <!-- Our React component -->
+    <script type="text/babel" src="/static/js/components/SurveyForm.jsx"></script>
+    
+    <!-- Initialize React -->
+    <script type="text/babel">
+        ReactDOM.render(
+            <SurveyForm />,
+            document.getElementById('root')
+        );
+    </script>
 </body>
 </html>

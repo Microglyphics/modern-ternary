@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.security import HTTPBasic
@@ -26,9 +26,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add after FastAPI initialization (Remark these out for deployment)
-# app.mount("/static", StaticFiles(directory="src/static"), name="static")
-# templates = Jinja2Templates(directory="templates")
+# ==== LOCAL DEVELOPMENT ONLY ====
+# Comment out these lines before deployment
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+templates = Jinja2Templates(directory="templates")
+# ===============================
 
 
 def load_questions():
@@ -80,14 +82,12 @@ async def add_security_headers(request, call_next):
     )
     return response
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Modernity Worldview Analysis API",
-        "version": "1.0.0",
-        "status": "running"
-    }
-
+# Development-only route for serving index page
+if __name__ == "__main__":  # Only in local development
+    @app.get("/")
+    async def serve_index(request: Request):
+        return templates.TemplateResponse("index.html", {"request": request})
+    
 @app.get("/api/health")
 async def health_check():
     try:

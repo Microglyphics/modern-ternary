@@ -1,8 +1,12 @@
-# db_manager.py
+# src/api/db_manager.py
 import os
 import mysql.connector
 from mysql.connector import Error
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,18 +23,24 @@ class DatabaseManager:
                 # Production configuration
                 config = {
                     'unix_socket': '/cloudsql/modernity-worldview:us-central1:modernity-db',
-                    'user': 'app_user',
-                    'password': '9pQK?fJF.9Lm]nv;',
-                    'database': 'modernity_survey'
+                    'user': os.getenv('DB_USER'),
+                    'password': os.getenv('DB_PASSWORD'),
+                    'database': os.getenv('DB_NAME'),
+                    'auth_plugin': 'mysql_native_password',
+                    'ssl': {
+                        'verify_cert': True,
+                        'ssl_ca': 'src/certs/server-ca.pem'
+                    }
                 }
             else:
                 # Development configuration
                 config = {
-                    'host': '127.0.0.1',
-                    'user': 'app_user',
-                    'password': '9pQK?fJF.9Lm]nv;',
-                    'database': 'modernity_survey',
-                    'port': 3307
+                    'host': os.getenv('DB_HOST'),
+                    'user': os.getenv('DB_USER'),
+                    'password': os.getenv('DB_PASSWORD'),
+                    'database': os.getenv('DB_NAME'),
+                    'port': int(os.getenv('DB_PORT')),
+                    'auth_plugin': 'mysql_native_password'
                 }
             
             self.connection = mysql.connector.connect(**config)

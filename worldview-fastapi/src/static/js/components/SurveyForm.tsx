@@ -1,8 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+
+interface Response {
+  id: string;
+  text: string;
+  scores: [number, number, number];
+}
+
+interface Question {
+  text: string;
+  responses: Response[];
+}
+
+interface Questions {
+  [key: string]: Question;
+}
+
+interface FormResponses {
+  [key: string]: number;
+}
 
 const SurveyForm = () => {
-  const [questions, setQuestions] = useState(null);
-  const [responses, setResponses] = useState({});
+  const [questions, setQuestions] = useState<Questions | null>(null);
+  const [responses, setResponses] = useState<FormResponses>({});
 
   useEffect(() => {
     fetch('/api/questions')
@@ -10,7 +30,7 @@ const SurveyForm = () => {
       .then(data => setQuestions(data.questions));
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = await fetch('/api/submit', {
       method: 'POST',

@@ -3,13 +3,16 @@ anyio==4.8.0
 click==8.1.8
 colorama==0.4.6
 fastapi==0.115.6
+fpdf2==2.7.8
 greenlet==3.1.1
 gunicorn==23.0.0
 h11==0.14.0
 idna==3.10
 Jinja2==3.1.5
 MarkupSafe==3.0.2
+matplotlib==3.8.3
 mysql-connector-python==9.1.0
+numpy==1.26.4
 packaging==24.2
 pydantic==2.10.5
 pydantic_core==2.27.2
