@@ -2,7 +2,6 @@ runtime: python39
 entrypoint: uvicorn main:app --host 0.0.0.0 --port $PORT
 
 handlers:
-# Add static files handler
 - url: /static
   static_dir: src/static
   secure: always
@@ -13,3 +12,7 @@ handlers:
 
 env_variables:
   PYTHONPATH: "/workspace:${PYTHONPATH}"
+  DB_USER: "app_user"
+  DB_PASSWORD: "9pQK?fJF.9Lm]nv;"
+  DB_NAME: "modernity_survey"
+  INSTANCE_CONNECTION_NAME: "modernity-worldview:us-central1:modernity-db"

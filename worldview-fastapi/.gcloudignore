@@ -1,6 +1,14 @@
 # This file specifies files that are *not* uploaded to Google Cloud
 # using gcloud. It follows the same syntax as .gitignore.
 
+# Most restrictive Node.js patterns first
+/node_modules/**/*
+/node_modules_backup/**/*
+*/node_modules/*
+*/node_modules_backup/*
+
+# Test this minimal configuration first
+
 # Git
 .gcloudignore
 .git
@@ -29,3 +37,11 @@ venv/
 cloud_sql_proxy*
 build/
 dist/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.npm
+.yarn

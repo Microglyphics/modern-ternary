@@ -4,11 +4,9 @@ from pathlib import Path
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
-from fastapi.security import HTTPBasic
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from src.models.models import SurveyResponse, Question
+from src.models.models import SurveyResponse
 from src.api.db_manager import DatabaseManager
 import json
 import uuid
@@ -26,12 +24,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# ==== LOCAL DEVELOPMENT ONLY ====
-# Comment out these lines before deployment
+# Configure templates and static files
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
-templates = Jinja2Templates(directory="templates")
-# ===============================
-
+templates = Jinja2Templates(directory="src/templates")
 
 def load_questions():
     try:
@@ -40,14 +35,6 @@ def load_questions():
     except Exception as e:
         logger.error(f"Error loading questions: {e}")
         raise HTTPException(status_code=500, detail="Error loading questions")
-
-def load_templates():
-    try:
-        with open(BASE_DIR / "src" / "data" / "response_templates.json") as f:
-            return json.load(f)["categories"]
-    except Exception as e:
-        logger.error(f"Error loading templates: {e}")
-        raise HTTPException(status_code=500, detail="Error loading templates")
 
 # Add CORS middleware
 app.add_middleware(
@@ -65,33 +52,15 @@ app.add_middleware(
 # Initialize database manager
 db = DatabaseManager()
 
-@app.middleware("http")
-async def add_security_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self' https:; "
-        "img-src 'self' https: data:; "
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "font-src 'self' data: https://fonts.gstatic.com; "
-        "connect-src 'self'"
-    )
-    return response
-
-# Development-only route for serving index page
-if __name__ == "__main__":  # Only in local development
-    @app.get("/")
-    async def serve_index(request: Request):
-        return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/")
+async def serve_survey(request: Request):
+    """Serve the main survey page"""
+    return templates.TemplateResponse("survey.html", {"request": request})
     
 @app.get("/api/health")
 async def health_check():
+    """Check API and database health"""
     try:
-        # Test database connection
         db.connect()
         return {
             "status": "healthy",
@@ -103,22 +72,9 @@ async def health_check():
             "database": str(e)
         }
 
-@app.get("/api/debug")
-async def debug():
-    try:
-        BASE_DIR = Path(__file__).resolve().parent
-        return {
-            "current_dir": str(BASE_DIR),
-            "files": [str(f) for f in BASE_DIR.glob("**/*")],
-            "src_exists": (BASE_DIR / "src").exists(),
-            "data_exists": (BASE_DIR / "src" / "data").exists(),
-            "questions_exists": (BASE_DIR / "src" / "data" / "questions_responses.json").exists()
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
 @app.get("/api/questions")
 async def get_questions():
+    """Get survey questions"""
     try:
         questions = load_questions()
         return questions
@@ -128,7 +84,11 @@ async def get_questions():
 
 @app.post("/api/submit")
 async def submit_survey(response: SurveyResponse):
+    """Submit survey responses"""
     try:
+        if not hasattr(response, 'session_id'):
+            response.session_id = str(uuid.uuid4())
+        
         record_id = db.save_response(response.dict())
         return {
             "status": "success",
@@ -139,9 +99,32 @@ async def submit_survey(response: SurveyResponse):
     except Exception as e:
         logger.error(f"Error saving survey: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/debug")
+async def debug():
+    """Debug endpoint to verify file paths and directory structure"""
+    try:
+        BASE_DIR = Path(__file__).resolve().parent
+        return {
+            "current_dir": str(BASE_DIR),
+            "files": [str(f) for f in BASE_DIR.glob("**/*") if not str(f).startswith(str(BASE_DIR / 'node_modules'))],
+            "src_exists": (BASE_DIR / "src").exists(),
+            "data_exists": (BASE_DIR / "src" / "data").exists(),
+            "questions_exists": (BASE_DIR / "src" / "data" / "questions_responses.json").exists(),
+            "templates_exists": (BASE_DIR / "src" / "templates").exists(),
+            "survey_exists": (BASE_DIR / "src" / "templates" / "survey.html").exists()
+        }
+    except Exception as e:
+        return {"error": str(e)}
+    
+@app.post("/api/test")
+async def test_endpoint():
+    """Test endpoint"""
+    return {"message": "test endpoint working"}
 
 @app.post("/api/test-survey")
 async def test_survey(survey: SurveyResponse):
+    """Test survey submission"""
     try:
         logger.info(f"Received survey data: {survey.dict()}")
         
@@ -173,11 +156,3 @@ async def test_survey(survey: SurveyResponse):
             status_code=500,
             detail=f"Error processing survey: {str(e)}"
         )
-    
-@app.post("/api/test")
-async def test_endpoint():
-    return {"message": "test endpoint working"}
-
-@app.get("/api/test-route")
-async def test_route():
-    return {"status": "route exists"}
