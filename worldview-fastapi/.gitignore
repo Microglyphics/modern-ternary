@@ -1,20 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+
 # Environment
 .env
-__pycache__/
-*.pyc
 .venv/
 venv/
+ENV/
 
 # Development
 cloud_sql_proxy*
 .vscode/
 .idea/
-
-# Build
 *.log
 .pytest_cache/
-build/
-dist/
 
-# VSCode workspace
-worldview.code-workspace
+# IDE
+*.code-workspace
+
+# Google Cloud
+*.pyc
+.coverage
+coverage.xml

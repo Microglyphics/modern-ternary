@@ -2,13 +2,526 @@
 <html>
 <head>
     <title>Modernity Worldview Survey</title>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="/static/components/SurveyForm.jsx"></script>
+    
+    <!-- React Components and Initialization -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+    
+        // Layer Controls Component
+        // Controls visibility of visualization elements
+        const LayerControls = ({ layers, setLayers }) => {
+            return (
+                <div className="absolute top-4 right-4 bg-white p-4 rounded shadow-lg">
+                    <h3 className="text-sm font-bold mb-2">Layer Controls</h3>
+                    {Object.entries(layers).map(([key, value]) => (
+                        <div key={key} className="flex items-center mb-2">
+                            <input
+                                type="checkbox"
+                                id={key}
+                                checked={value}
+                                onChange={(e) => setLayers({
+                                    ...layers,
+                                    [key]: e.target.checked
+                                })}
+                                className="mr-2"
+                            />
+                            <label htmlFor={key} className="text-sm capitalize">
+                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </label>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+    
+        // Ternary Plot Component
+        // Displays perspective analysis in a ternary plot format
+        const TernaryPlot = ({ analysisData }) => {
+            // Layer visibility state
+            const [layers, setLayers] = useState({
+                baseline: true,    // Base triangle
+                gridLines: true,   // Grid reference lines
+                mixTriangle: true, // Central mixing region
+                shading: true      // Background shading
+            });
+    
+            // SVG dimensions and margins
+            const width = 800;
+            const height = 700;
+            const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+            const plotWidth = width - margin.left - margin.right;
+            const plotHeight = height - margin.top - margin.bottom;
+    
+            // Triangle vertices calculation
+            const vertices = {
+                top: { x: plotWidth / 2 + margin.left, y: margin.top },      // Modern
+                left: { x: margin.left, y: height - margin.bottom },         // PostModern
+                right: { x: width - margin.right, y: height - margin.bottom } // PreModern
+            };
+
+            // Generate grid lines and ticks
+            const generateBaselineWithScales = () => {
+                const elements = [];
+                
+                // Base triangle path
+                elements.push(
+                    <path
+                        key="base-triangle"
+                        d={`M ${vertices.left.x},${vertices.left.y} 
+                        L ${vertices.top.x},${vertices.top.y} 
+                        L ${vertices.right.x},${vertices.right.y} 
+                        L ${vertices.left.x},${vertices.left.y}`}
+                        stroke="black"
+                        strokeWidth="2"
+                        fill="none"
+                    />
+                );
+
+                // Add axis labels
+                elements.push(
+                    <text
+                        key="premodern-label"
+                        x={(vertices.left.x + vertices.right.x) / 2}
+                        y={vertices.left.y + 40}
+                        textAnchor="middle"
+                    >
+                        PreModern
+                    </text>
+                );
+                elements.push(
+                    <text
+                        key="postmodern-label"
+                        x={vertices.left.x - 0}  // Moved closer to left edge
+                        y={(vertices.left.y + vertices.top.y) / 2 - 20}  // Adjusted y position
+                        textAnchor="end"
+                        transform={`rotate(-60 ${vertices.left.x - 40} ${(vertices.left.y + vertices.top.y) / 2 - 20})`}
+                    >
+                        PostModern
+                    </text>
+                );
+                elements.push(
+                    <text
+                        key="modern-label"
+                        x={vertices.right.x + 0}  // Moved closer to right edge
+                        y={(vertices.right.y + vertices.top.y) / 2 - 20}  // Adjusted y position
+                        textAnchor="start"
+                        transform={`rotate(60 ${vertices.right.x + 40} ${(vertices.right.y + vertices.top.y) / 2 - 20})`}
+                    >
+                        Modern
+                    </text>
+                );
+
+                // Generate tick marks and labels for all sides
+                for (let i = 0; i <= 10; i++) {
+                    const ratio = i / 10;
+                    
+                    // Bottom scale (Premodern) - 0 to 100 left to right
+                    const bottomValue = i * 10;
+                    elements.push(
+                        <g key={`bottom-tick-${i}`}>
+                            <line
+                                x1={vertices.left.x + (vertices.right.x - vertices.left.x) * ratio}
+                                y1={vertices.left.y}
+                                x2={vertices.left.x + (vertices.right.x - vertices.left.x) * ratio}
+                                y2={vertices.left.y + 5}
+                                stroke="black"
+                                strokeWidth="1"
+                            />
+                            <text
+                                x={vertices.left.x + (vertices.right.x - vertices.left.x) * ratio}
+                                y={vertices.left.y + 20}
+                                textAnchor="middle"
+                                fontSize="12"
+                            >
+                                {bottomValue}
+                            </text>
+                        </g>
+                    );
+
+                    // Left side (Postmodern) - 0 to 100 bottom to top
+                    const leftValue = i * 10;  // Now increases going up
+                    const leftX = vertices.left.x + (vertices.top.x - vertices.left.x) * ratio;
+                    const leftY = vertices.left.y - (vertices.left.y - vertices.top.y) * ratio;
+                    elements.push(
+                        <g key={`left-tick-${i}`}>
+                            <line
+                                x1={leftX}
+                                y1={leftY}
+                                x2={leftX - 5 * Math.cos(Math.PI / 3)}
+                                y2={leftY + 5 * Math.sin(Math.PI / 3)}
+                                stroke="black"
+                                strokeWidth="1"
+                            />
+                            <text
+                                x={leftX - 15}
+                                y={leftY + 5}
+                                textAnchor="end"
+                                transform={`rotate(-60 ${leftX} ${leftY})`}
+                                fontSize="12"
+                            >
+                                {leftValue}
+                            </text>
+                        </g>
+                    );
+
+                    // Right side (Modern) - 0 to 100 bottom to top
+                    const rightValue = i * 10;  // Now increases going up
+                    const rightX = vertices.right.x - (vertices.right.x - vertices.top.x) * ratio;
+                    const rightY = vertices.left.y - (vertices.left.y - vertices.top.y) * ratio;
+                    elements.push(
+                        <g key={`right-tick-${i}`}>
+                            <line
+                                x1={rightX}
+                                y1={rightY}
+                                x2={rightX + 5 * Math.cos(Math.PI / 3)}
+                                y2={rightY + 5 * Math.sin(Math.PI / 3)}
+                                stroke="black"
+                                strokeWidth="1"
+                            />
+                            <text
+                                x={rightX + 15}
+                                y={rightY + 5}
+                                textAnchor="start"
+                                transform={`rotate(60 ${rightX} ${rightY})`}
+                                fontSize="12"
+                            >
+                                {rightValue}
+                            </text>
+                        </g>
+                    );
+                }
+
+                return elements;
+            };
+
+            // Add this after generateBaselineWithScales()
+            const generateGridAndTicks = () => {
+                const gridElements = [];
+                
+                // Generate grid lines every 10 units
+                for (let i = 0; i <= 10; i++) {
+                    const ratio = i / 10;
+                    
+                    // These create the diagonal lattice pattern
+                    if (i > 0 && i < 10) {  // Skip 0 and 100% lines as they're part of the triangle
+                        // Lines parallel to left side
+                        gridElements.push(
+                            <line
+                                key={`left-${i}`}
+                                x1={vertices.left.x + (vertices.right.x - vertices.left.x) * ratio}
+                                y1={vertices.left.y}
+                                x2={vertices.top.x}
+                                y2={vertices.top.y + (vertices.left.y - vertices.top.y) * ratio}
+                                stroke="#ffcccc"
+                                strokeWidth="1"
+                                strokeDasharray="3,3"
+                                opacity="0.4"
+                            />
+                        );
+
+                        // Lines parallel to right side
+                        gridElements.push(
+                            <line
+                                key={`right-${i}`}
+                                x1={vertices.left.x + (vertices.right.x - vertices.left.x) * (1 - ratio)}
+                                y1={vertices.left.y}
+                                x2={vertices.top.x}
+                                y2={vertices.top.y + (vertices.left.y - vertices.top.y) * ratio}
+                                stroke="#ffcccc"
+                                strokeWidth="1"
+                                strokeDasharray="3,3"
+                                opacity="0.4"
+                            />
+                        );
+                    }
+                }
+                
+                return gridElements;
+            };
+    
+            // Convert ternary (triangular) coordinates to Cartesian (x,y) coordinates
+            const ternaryToCartesian = (pre, mod, post) => {
+                const total = pre + mod + post;
+                const normalizedPre = pre / total;
+                const normalizedMod = mod / total;
+                const normalizedPost = post / total;
+    
+                const x = vertices.left.x * normalizedPost + 
+                         vertices.top.x * normalizedMod + 
+                         vertices.right.x * normalizedPre;
+    
+                const y = vertices.left.y * normalizedPost + 
+                         vertices.top.y * normalizedMod + 
+                         vertices.right.y * normalizedPre;
+    
+                return { x, y };
+            };
+    
+            // Calculate data point position
+            const plotPoint = ternaryToCartesian(...analysisData.scores);
+    
+            return (
+                <div className="relative">
+                    <LayerControls layers={layers} setLayers={setLayers} />
+                    <svg 
+                        width={width} 
+                        height={height} 
+                        className="bg-white mx-auto"
+                        viewBox={`0 0 ${width} ${height}`}
+                    >
+                        {/* Grid lines and ticks */}
+                        {layers.gridLines && generateGridAndTicks()}
+                        
+                        {/* Base triangle with scales */}
+                        {layers.baseline && generateBaselineWithScales()}
+
+                        {/* Data point */}
+                        <circle
+                            cx={plotPoint.x}
+                            cy={plotPoint.y}
+                            r="6"
+                            fill="red"
+                            stroke="white"
+                            strokeWidth="2"
+                        />
+                    </svg>
+                </div>
+            );
+        };
+    
+// =================================================================================================
+        // SurveyForm Component
+        const SurveyForm = () => {
+            const [questions, setQuestions] = useState(null);
+            const [responses, setResponses] = useState({});
+            const [error, setError] = useState(null);
+            const [analysisData, setAnalysisData] = useState(null);
+
+            useEffect(() => {
+                console.log("Fetching questions...");
+                fetch('/api/questions')
+                    .then(res => {
+                        console.log("Got response:", res);
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log("Got data:", data);
+                        setQuestions(data.questions);
+                    })
+                    .catch(err => {
+                        console.error("Error fetching questions:", err);
+                        setError(err.message);
+                    });
+            }, []);
+
+            const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                console.log("Submitting responses:", responses);
+                
+                // Initialize counters
+                let pre = 0, mod = 0, post = 0;
+                
+                // Sum up the scores from responses
+                Object.entries(responses).forEach(([key, response_num]) => {
+                    const questionKey = key.toUpperCase().replace('_RESPONSE', ''); // 'q1_response' -> 'Q1'
+                    console.log(`Processing ${questionKey}, response number ${response_num}`);
+                    
+                    const question = questions[questionKey];
+                    if (question && response_num) {
+                        const scores = question.responses[response_num - 1].scores;
+                        console.log(`Scores for ${questionKey}, response ${response_num}:`, scores);
+                        
+                        pre += scores[0];
+                        mod += scores[1];
+                        post += scores[2];
+                        
+                        console.log(`Running totals - pre: ${pre}, mod: ${mod}, post: ${post}`);
+                    }
+                });
+
+                // At this point, for all responses = 3:
+                // pre should be 0, mod should be 0, post should be 600
+                console.log(`Final raw scores - pre: ${pre}, mod: ${mod}, post: ${post}`);
+
+                // No normalization needed - these are the final n-values
+                const n1 = pre;  // PreModern
+                const n2 = mod;  // Modern
+                const n3 = post; // PostModern
+
+                const submissionData = {
+                    session_id: crypto.randomUUID(),
+                    q1_response: responses.q1_response,
+                    q2_response: responses.q2_response,
+                    q3_response: responses.q3_response,
+                    q4_response: responses.q4_response,
+                    q5_response: responses.q5_response,
+                    q6_response: responses.q6_response,
+                    n1,
+                    n2,
+                    n3,
+                    plot_x: null,  // We'll calculate these after fixing n-values
+                    plot_y: null,
+                    browser: navigator.userAgent,
+                    region: null,
+                    source: 'web',
+                    hash_email_session: null
+                };
+
+                console.log("Final submission data:", submissionData);
+                    console.log("Submitting to URL:", '/api/submit');
+
+                    // First submit the responses
+                    const submitResult = await fetch('/api/submit', {  // make sure this matches
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(submissionData)
+                    });
+
+                    if (!submitResult.ok) {
+                        throw new Error(`Submit failed: ${submitResult.status} ${submitResult.statusText}`);
+                    }
+                    
+                    const submitData = await submitResult.json();
+                    console.log("Submit response:", submitData);
+
+                    // Then get the analysis
+                    const analysisResult = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            Q1: responses.q1_response,
+                            Q2: responses.q2_response,
+                            Q3: responses.q3_response,
+                            Q4: responses.q4_response,
+                            Q5: responses.q5_response,
+                            Q6: responses.q6_response
+                        })
+                    });
+
+                    if (!analysisResult.ok) {
+                        throw new Error(`Analysis failed: ${analysisResult.status} ${analysisResult.statusText}`);
+                    }
+
+                    const analysis = await analysisResult.json();
+                    console.log("Analysis response:", analysis);
+                    setAnalysisData(analysis);
+
+                } catch (error) {
+                    console.error("Error submitting survey:", error);
+                    setError(`Error submitting survey: ${error.message}`);
+                }
+            };
+
+            if (error) return <div className="text-red-600">Error: {error}</div>;
+            if (!questions) return <div className="text-blue-600">Loading questions...</div>;
+
+            if (analysisData) {
+                if (!analysisData.scores || !analysisData.category_responses) {
+                    return <div className="text-red-600">Error: Invalid analysis data received</div>;
+                }
+
+                return (
+                    <div className="max-w-4xl mx-auto p-4">
+                        <h1 className="text-2xl font-bold mb-2">Your Worldview Analysis</h1>
+                        <h2 className="text-xl text-center text-blue-600 font-semibold mb-6">
+                            {analysisData.perspective}
+                        </h2>
+                        
+                        {/* Ternary Plot */}
+                        <div className="mb-8">
+                            <TernaryPlot analysisData={analysisData} />
+                        </div>
+
+                        {/* Scores */}
+                        <div className="mb-6">
+                            <h2 className="text-xl font-semibold mb-2">Your Perspective Scores:</h2>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>PreModern: {analysisData.scores[0]}%</div>
+                                <div>Modern: {analysisData.scores[1]}%</div>
+                                <div>PostModern: {analysisData.scores[2]}%</div>
+                            </div>
+                        </div>
+
+                        {/* Category Responses */}
+                        <div className="space-y-6">
+                            {Object.entries(analysisData.category_responses)
+                                .map(([category, response]) => (
+                                    <div key={category} className="border rounded p-4">
+                                        <h3 className="text-lg font-semibold mb-2">{category}</h3>
+                                        <p>{response}</p>
+                                    </div>
+                                ))}
+                        </div>
+
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Take Survey Again
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-4xl mx-auto p-4">
+                    <form onSubmit={handleSubmit}>
+                        {Object.entries(questions).map(([id, question]) => (
+                            <div key={id} className="mb-6 p-6 border rounded shadow">
+                                <h3 className="text-lg font-semibold mb-4">{question.text}</h3>
+                                <div className="space-y-2">
+                                    {question.responses.map((response, idx) => (
+                                        <div key={response.id} className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                name={id}
+                                                value={idx + 1}
+                                                id={response.id}
+                                                className="mr-2"
+                                                onChange={(e) => setResponses({
+                                                    ...responses,
+                                                    [`${id.toLowerCase()}_response`]: parseInt(e.target.value)
+                                                })}
+                                            />
+                                            <label htmlFor={response.id}>{response.text}</label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                        <button 
+                            type="submit" 
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Submit
+                        </button>
+                    </form>
+                </div>
+            );
+        }; // Close SurveyForm component
+
+        // Add error boundary around render
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<SurveyForm />);
+        } catch (err) {
+            console.error("Error rendering app:", err);
+            document.getElementById('root').innerHTML = 
+                `<div class="text-red-600">Error loading application: ${err.message}</div>`;
+        }
+    </script>
 </body>
 </html>

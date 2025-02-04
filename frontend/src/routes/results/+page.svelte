@@ -1,3 +1,5 @@
+// src/routes/results/+page.svelte
+
 <script lang="ts">
     import { surveyStore } from '$lib/stores/surveyStore';
     import type { Questions } from '$lib/types/survey';
