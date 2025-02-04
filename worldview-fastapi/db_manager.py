@@ -49,7 +49,7 @@ class DatabaseManager:
 
                 logger.info(f"Executing query:\n{query}")
                 logger.info(f"With parameters:\n{survey_data}")
-
+                logger.info(f"Final values before insert: plot_x={survey_data.get('plot_x')}, plot_y={survey_data.get('plot_y')}")
                 cursor.execute(query, survey_data)
                 connection.commit()
                 logger.info("Transaction committed.")

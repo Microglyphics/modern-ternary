@@ -8,6 +8,7 @@ from pathlib import Path
 import logging
 import uuid
 import json
+from decimal import Decimal
 
 # Third-party imports
 from fastapi import FastAPI, HTTPException, Request
@@ -62,25 +63,39 @@ def get_db():
         except Exception as e:
             logger.error(f"Error closing database connection: {e}")
 
+def decimal_to_float(obj):
+    """Convert Decimal to float for JSON serialization."""
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError(f"Type {type(obj)} not serializable")
+
 @app.post("/api/submit")
 async def submit_survey(response: SurveyResponse):
-    logger.info("Starting submit_survey endpoint")
+    logger.info("🚀 Starting submit_survey endpoint")
+
     try:
-        logger.info(f"Received survey data: {response.dict()}")
         data = response.dict()
-        
-        # Use db_manager directly since it's our singleton instance
+
+        # Convert Decimal fields to float
+        for key in data:
+            if isinstance(data[key], Decimal):
+                data[key] = float(data[key])
+
+        logger.info(f"📥 Received survey data: {json.dumps(data, indent=2, default=decimal_to_float)}")
+
+        # Save the response
         record_id = db_manager.save_response(data)
-        logger.info(f"Saved survey response with ID: {record_id}")
-        
+        logger.info(f"✅ Saved survey response with ID: {record_id}")
+
         return {
             "status": "success",
             "message": "Survey response recorded",
             "session_id": response.session_id,
             "record_id": record_id
         }
+
     except Exception as e:
-        logger.error(f"Error saving survey: {e}", exc_info=True)
+        logger.error(f"❌ Error saving survey: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     
 # Setup templates - add this right after app creation

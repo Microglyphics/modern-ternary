@@ -306,98 +306,129 @@
         const SurveyForm = () => {
             const [questions, setQuestions] = useState(null);
             const [responses, setResponses] = useState({});
+            const [submissionSuccess, setSubmissionSuccess] = useState(false);
             const [error, setError] = useState(null);
             const [analysisData, setAnalysisData] = useState(null);
+            const [plotCoordinates, setPlotCoordinates] = useState(() => {
+                const storedCoords = localStorage.getItem("plotCoordinates");
+                return storedCoords ? JSON.parse(storedCoords) : { x: null, y: null };
+        });
+
 
             useEffect(() => {
-                console.log("Fetching questions...");
+                console.log("🔄 Fetching questions...");
                 fetch('/api/questions')
                     .then(res => {
-                        console.log("Got response:", res);
+                        console.log("📥 API response received:", res);
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! Status: ${res.status}`);
+                        }
                         return res.json();
                     })
                     .then(data => {
-                        console.log("Got data:", data);
+                        console.log("✅ Questions loaded successfully:", data);
                         setQuestions(data.questions);
                     })
                     .catch(err => {
-                        console.error("Error fetching questions:", err);
-                        setError(err.message);
+                        console.error("❌ Error fetching questions:", err);
+                        setError(`Error loading questions: ${err.message}`);
                     });
             }, []);
 
+            useEffect(() => {
+                console.log("📊 `questions` state updated:", questions);
+            }, [questions]);
+
+
             const handleSubmit = async (e) => {
-            e.preventDefault();
-            try {
-                console.log("Submitting responses:", responses);
-                
-                // Initialize counters
-                let pre = 0, mod = 0, post = 0;
-                
-                // Sum up the scores from responses
-                Object.entries(responses).forEach(([key, response_num]) => {
-                    const questionKey = key.toUpperCase().replace('_RESPONSE', ''); // 'q1_response' -> 'Q1'
-                    console.log(`Processing ${questionKey}, response number ${response_num}`);
+                e.preventDefault();
+                try {
+                    console.log("Submitting responses:", responses);
                     
-                    const question = questions[questionKey];
-                    if (question && response_num) {
-                        const scores = question.responses[response_num - 1].scores;
-                        console.log(`Scores for ${questionKey}, response ${response_num}:`, scores);
+                    // Calculate n-values and scores
+                    let pre = 0, mod = 0, post = 0;
+                    
+                    // Sum up the scores from responses
+                    Object.entries(responses).forEach(([key, response_num]) => {
+                        const questionKey = key.toUpperCase().replace('_RESPONSE', ''); // 'q1_response' -> 'Q1'
+                        console.log(`Processing ${questionKey}, response ${response_num}`);
                         
-                        pre += scores[0];
-                        mod += scores[1];
-                        post += scores[2];
-                        
-                        console.log(`Running totals - pre: ${pre}, mod: ${mod}, post: ${post}`);
-                    }
-                });
+                        const question = questions[questionKey];
+                        if (question && response_num) {
+                            const scores = question.responses[response_num - 1].scores;
+                            console.log(`Scores for ${questionKey}, response ${response_num}:`, scores);
+                            
+                            pre += scores[0];
+                            mod += scores[1];
+                            post += scores[2];
+                            
+                            console.log(`Running totals - pre: ${pre}, mod: ${mod}, post: ${post}`);
+                        }
+                    });
 
-                // At this point, for all responses = 3:
-                // pre should be 0, mod should be 0, post should be 600
-                console.log(`Final raw scores - pre: ${pre}, mod: ${mod}, post: ${post}`);
+                    // Calculate plot coordinates using the same method as TernaryPlot
+                    const width = 800;
+                    const height = 700;
+                    const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+                    const plotWidth = width - margin.left - margin.right;
+                    const plotHeight = height - margin.top - margin.bottom;
 
-                // No normalization needed - these are the final n-values
-                const n1 = pre;  // PreModern
-                const n2 = mod;  // Modern
-                const n3 = post; // PostModern
+                    const vertices = {
+                        top: { x: plotWidth / 2 + margin.left, y: margin.top },
+                        left: { x: margin.left, y: height - margin.bottom },
+                        right: { x: width - margin.right, y: height - margin.bottom }
+                    };
 
-                const submissionData = {
-                    session_id: crypto.randomUUID(),
-                    q1_response: responses.q1_response,
-                    q2_response: responses.q2_response,
-                    q3_response: responses.q3_response,
-                    q4_response: responses.q4_response,
-                    q5_response: responses.q5_response,
-                    q6_response: responses.q6_response,
-                    n1,
-                    n2,
-                    n3,
-                    plot_x: null,  // We'll calculate these after fixing n-values
-                    plot_y: null,
-                    browser: navigator.userAgent,
-                    region: null,
-                    source: 'web',
-                    hash_email_session: null
-                };
+                    // Calculate normalized values
+                    const total = pre + mod + post;
+                    const normalizedPre = total > 0 ? pre / total : 0;
+                    const normalizedMod = total > 0 ? mod / total : 0;
+                    const normalizedPost = total > 0 ? post / total : 0;
 
-                console.log("Final submission data:", submissionData);
-                    console.log("Submitting to URL:", '/api/submit');
+                    // Calculate plot coordinates
+                    const plot_x = vertices.left.x * normalizedPost + 
+                                vertices.top.x * normalizedMod + 
+                                vertices.right.x * normalizedPre;
 
-                    // First submit the responses
-                    const submitResult = await fetch('/api/submit', {  // make sure this matches
+                    const plot_y = vertices.left.y * normalizedPost + 
+                                vertices.top.y * normalizedMod + 
+                                vertices.right.y * normalizedPre;
+
+                    console.log("Calculated values:", { pre, mod, post, plot_x, plot_y });
+
+                    const submissionData = {
+                        session_id: crypto.randomUUID(),
+                        q1_response: responses.q1_response,
+                        q2_response: responses.q2_response,
+                        q3_response: responses.q3_response,
+                        q4_response: responses.q4_response,
+                        q5_response: responses.q5_response,
+                        q6_response: responses.q6_response,
+                        n1: pre,
+                        n2: mod,
+                        n3: post,
+                        plot_x: Math.round(plot_x * 100) / 100,  // Round to 2 decimal places
+                        plot_y: Math.round(plot_y * 100) / 100,  // Round to 2 decimal places
+                        browser: navigator.userAgent,
+                        region: null,
+                        source: 'web',
+                        hash_email_session: null
+                    };
+
+                    console.log("Final submission data:", submissionData);
+
+                    // Submit survey data
+                    const submitResponse = await fetch('/api/submit', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(submissionData)
                     });
 
-                    if (!submitResult.ok) {
-                        throw new Error(`Submit failed: ${submitResult.status} ${submitResult.statusText}`);
-                    }
-                    
-                    const submitData = await submitResult.json();
-                    console.log("Submit response:", submitData);
+                    const submitResult = await submitResponse.json();
+                    console.log("✅ Submission response:", submitResult);
+                    setSubmissionSuccess(true);
 
-                    // Then get the analysis
+                    // Get analysis
                     const analysisResult = await fetch('/api/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -412,7 +443,7 @@
                     });
 
                     if (!analysisResult.ok) {
-                        throw new Error(`Analysis failed: ${analysisResult.status} ${analysisResult.statusText}`);
+                        throw new Error(`Analysis failed: ${analysisResult.status}`);
                     }
 
                     const analysis = await analysisResult.json();
@@ -420,7 +451,7 @@
                     setAnalysisData(analysis);
 
                 } catch (error) {
-                    console.error("Error submitting survey:", error);
+                    console.error("❌ Error submitting survey:", error);
                     setError(`Error submitting survey: ${error.message}`);
                 }
             };
@@ -442,7 +473,20 @@
                         
                         {/* Ternary Plot */}
                         <div className="mb-8">
-                            <TernaryPlot analysisData={analysisData} />
+                            <TernaryPlot 
+                                analysisData={analysisData} 
+                                onPlotCalculated={(coords) => {
+                                    if (coords) {
+                                        console.log("✅ Received plot coordinates from TernaryPlot:", coords);
+                                        setPlotCoordinates(coords);
+                                        localStorage.setItem("plotCoordinates", JSON.stringify(coords));  // 🔥 Save the coordinates
+                                    } else {
+                                        console.warn("⚠️ WARNING: No plot coordinates received from TernaryPlot!");
+                                    }
+                                }} 
+                            />
+
+
                         </div>
 
                         {/* Scores */}

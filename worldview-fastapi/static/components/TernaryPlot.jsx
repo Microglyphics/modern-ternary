@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // TernaryPlot Component
-const TernaryPlot = ({ analysisData }) => {
+const TernaryPlot = ({ analysisData, onPlotCalculated }) => {
     const [layers, setLayers] = useState({
         baseline: true,
         gridLines: true,
@@ -40,9 +40,25 @@ const TernaryPlot = ({ analysisData }) => {
         return { x, y };
     };
 
-    // Calculate plot point position
+    // Calculate plot point position and send to parent
     const plotPoint = ternaryToCartesian(...analysisData.scores);
-
+    
+    useEffect(() => {
+        if (analysisData?.scores) {
+            const plotPoint = ternaryToCartesian(...analysisData.scores);
+            console.log("📍 Calculated plot coordinates in TernaryPlot:", plotPoint);
+            
+            if (onPlotCalculated) {
+                console.log("📤 Sending plot coordinates to parent:", plotPoint);
+                onPlotCalculated(plotPoint);
+            } else {
+                console.warn("⚠️ WARNING: `onPlotCalculated` is missing in TernaryPlot!");
+            }
+        } else {
+            console.warn("⚠️ WARNING: `analysisData.scores` is undefined in TernaryPlot.");
+        }
+    }, [analysisData]);
+ 
     return (
         <div className="relative">
             <LayerControls layers={layers} setLayers={setLayers} />
