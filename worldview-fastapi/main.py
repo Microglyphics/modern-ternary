@@ -17,6 +17,7 @@ from fastapi.security import HTTPBasic
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
+from src.api.routes import pdf_routes
 
 # Local application imports
 from models import SurveyResponse, Question
@@ -125,8 +126,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# Initialize database manager
-# db = DatabaseManager()
+app.include_router(pdf_routes.router, prefix="/api")
 
 @app.middleware("http")
 async def add_security_headers(request, call_next):
@@ -419,3 +419,31 @@ async def test_db():
     except Exception as e:
         logger.error(f"Database test failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/connexion-test")
+async def test_connection():
+    """Test database connection and return detailed diagnostics"""
+    try:
+        # Get environment info
+        env_info = {
+            "GAE_ENV": os.getenv('GAE_ENV'),
+            "INSTANCE_CONNECTION_NAME": os.getenv('INSTANCE_CONNECTION_NAME'),
+            "DB_HOST": os.getenv('DB_HOST'),
+            "DB_PORT": os.getenv('DB_PORT')
+        }
+        
+        # Test database connexion
+        result = db_manager.test_connection()
+        
+        return {
+            "status": "success",
+            "environment": env_info,
+            "connection_test": result
+        }
+    except Exception as e:
+        logger.error(f"Connexion test failed: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "environment": env_info
+        }

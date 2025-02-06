@@ -7,4 +7,10 @@ handlers:
   secure: always
 
 env_variables:
-  PYTHONPATH: "/workspace:${PYTHONPATH}"
+  DB_USER: "app_user"
+  DB_PASSWORD: "9pQK?fJF.9Lm]nv;"
+  DB_NAME: "modernity_survey"
+  INSTANCE_CONNECTION_NAME: "modernity-worldview:us-central1:modernity-db"
+
+beta_settings:
+  cloud_sql_instances: modernity-worldview:us-central1:modernity-db
