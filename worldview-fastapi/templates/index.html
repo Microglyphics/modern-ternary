@@ -633,11 +633,11 @@ const SurveyForm = () => {
                 </div>
 
                 {/* Category Responses */}
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {Object.entries(analysisData.category_responses)
                         .map(([category, response]) => (
-                            <div key={category} className="border rounded p-4">
-                                <h3 className="text-lg font-semibold mb-2">{category}</h3>
+                            <div key={category} className="border rounded p-3">
+                                <h3 className="text-lg font-semibold mb-1">{category}</h3>
                                 <p>{response}</p>
                             </div>
                         ))}

@@ -13,50 +13,32 @@ logger = logging.getLogger(__name__)
 
 class ModernityPDFReport:
     def __init__(self):
+        """Initialize PDF with standard settings"""
         self.pdf = FPDF()
         self.pdf.set_auto_page_break(auto=True, margin=15)
         self.pdf.add_page()
         self.pdf.set_left_margin(15)
         self.pdf.set_right_margin(15)
-        
-    def add_header(self):
-        """Add header and title to the PDF"""
+
+    def create_first_page(self, perspective: str, scores: List[float], plot_image_path: str = None):
+        """Create the complete first page in the correct sequence"""
+        # 1. Title and date
         self.pdf.set_font("Arial", style="B", size=24)
         self.pdf.cell(0, 15, txt="Modernity Worldview Analysis", ln=True, align='C')
-        self.pdf.ln(5)
+        self.pdf.ln(1)
         
-        # Add date
-        self.pdf.set_font("Arial", size=10)
         current_date = datetime.now().strftime("%B %d, %Y")
-        self.pdf.cell(0, 10, txt=f"Report generated on {current_date}", ln=True, align='C')
-        self.pdf.ln(10)
-
-    def add_disclaimer(self):
-        """Add disclaimer and footer text"""
-        self.pdf.set_font("Arial", style="I", size=10)
-        self.pdf.multi_cell(0, 5, 
-            txt="The Worldview Analysis is not a scientific survey. It is designed as an experiment to provide directional insights.",
-            align='L'
-        )
-        self.pdf.ln(3)
-        
-        # Add blog URL and copyright
         self.pdf.set_font("Arial", size=10)
-        self.pdf.write(5, "For more information, visit ")
-        self.pdf.set_text_color(0, 0, 255)
-        self.pdf.write(5, "http://philosophics.blog")
-        self.pdf.set_text_color(0, 0, 0)
-        self.pdf.write(5, f". All Rights Reserved © {datetime.now().year} Bry Willis, Philosophics")
-
-    def add_perspective_summary(self, perspective: str, scores: List[float]):
-        """Add perspective summary section"""
+        self.pdf.cell(0, 10, txt=f"Survey results generated on {current_date}", ln=True, align='C')
+        self.pdf.ln(10)
+        
+        # 2. Perspective and scores
         self.pdf.set_font("Arial", size=14)
         self.pdf.write(10, "Your modernity worldview perspective is: ")
         self.pdf.set_font("Arial", style="B", size=14)
         self.pdf.write(10, perspective)
         self.pdf.ln(15)
         
-        # Add scores
         self.pdf.set_font("Arial", size=12)
         self.pdf.cell(0, 10, txt="Your Perspective Scores:", ln=True)
         scores_text = [
@@ -67,28 +49,38 @@ class ModernityPDFReport:
         for score in scores_text:
             self.pdf.cell(0, 8, txt=score, ln=True)
         self.pdf.ln(10)
-
-    def add_visualization(self, plot_image_path: str):
-        """Add the ternary plot visualization"""
-        if os.path.exists(plot_image_path):
+        
+        # 3. Visualization
+        if plot_image_path and os.path.exists(plot_image_path):
             self.pdf.image(plot_image_path, x=25, w=160)
             self.pdf.ln(10)
-        else:
-            logger.error(f"Plot image not found at {plot_image_path}")
+        
+        # 4. Disclaimer text
+        self.pdf.ln(5)
+        self.pdf.set_font("Arial", style="I", size=10)
+        self.pdf.multi_cell(0, 5, 
+            txt="The Worldview Analysis is not a scientific survey. It is designed as an experiment to provide directional insights.",
+            align='L'
+        )
+        
+        self.pdf.set_font("Arial", size=10)
+        self.pdf.write(5, "For more information, visit ")
+        self.pdf.set_text_color(0, 0, 255)
+        self.pdf.write(5, "http://philosophics.blog")
+        self.pdf.set_text_color(0, 0, 0)
+        self.pdf.write(5, f". All Rights Reserved © {datetime.now().year} Bry Willis, Philosophics")
 
     def add_category_analysis(self, category_responses: Dict[str, str]):
-        """Add detailed category analysis"""
+        """Add the category analysis on a new page"""
         self.pdf.add_page()
         self.pdf.set_font("Arial", style="B", size=18)
         self.pdf.cell(0, 12, txt="Worldview Category Analysis", ln=True)
         self.pdf.ln(5)
 
         for category, response in category_responses.items():
-            # Category header
             self.pdf.set_font("Arial", style="B", size=13)
             self.pdf.cell(0, 10, txt=category, ln=True)
             
-            # Category content
             self.pdf.set_font("Arial", size=11)
             self.pdf.multi_cell(0, 8, txt=response)
             self.pdf.ln(5)
@@ -98,16 +90,13 @@ def generate_pdf_report(perspective: str, scores: List[float],
     """Generate the complete PDF report"""
     try:
         report = ModernityPDFReport()
-        report.add_header()
-        report.add_perspective_summary(perspective, scores)
         
-        if plot_image_path:
-            report.add_visualization(plot_image_path)
-            
+        # Create first page with all elements in sequence
+        report.create_first_page(perspective, scores, plot_image_path)
+        
+        # Add category analysis on the second page
         report.add_category_analysis(category_responses)
-        report.add_disclaimer()
 
-        # Return PDF as bytes
         return report.pdf.output(dest='S').encode('latin-1')
         
     except Exception as e:
