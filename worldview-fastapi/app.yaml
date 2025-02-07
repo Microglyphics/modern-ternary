@@ -2,6 +2,10 @@ runtime: python39
 entrypoint: uvicorn main:app --host 0.0.0.0 --port $PORT
 
 handlers:
+- url: /favicon.ico
+  static_files: static/favicon.ico
+  upload: static/favicon.ico
+  
 - url: /.*
   script: auto
   secure: always

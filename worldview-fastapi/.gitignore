@@ -9,6 +9,8 @@ dist/
 
 # Environment
 .env
+.env.*
+!.env.example
 .venv/
 venv/
 ENV/
@@ -27,3 +29,7 @@ cloud_sql_proxy*
 *.pyc
 .coverage
 coverage.xml
+
+# Local configuration
+app.yaml
+!app.yaml.example

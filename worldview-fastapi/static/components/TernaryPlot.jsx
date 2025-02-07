@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 // TernaryPlot Component
 const TernaryPlot = ({ analysisData, onPlotCalculated }) => {
     const [layers, setLayers] = useState({
-        baseline: true,
+        // baseline: true,  # Hide baseline by default
         gridLines: true,
-        mixTriangle: true,
+        categoryBoundaries: true,
         shading: true
     });
 

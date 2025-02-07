@@ -24,8 +24,12 @@ from models import SurveyResponse, Question
 from db_manager import DatabaseManager
 from src.visualization.perspective_analyzer import PerspectiveAnalyzer
 
+# Dev environment setup
+from dotenv import load_dotenv
+load_dotenv()  # This loads .env in development
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Create single database manager instance
@@ -72,8 +76,7 @@ def decimal_to_float(obj):
 
 @app.post("/api/submit")
 async def submit_survey(response: SurveyResponse):
-    logger.info("🚀 Starting submit_survey endpoint")
-
+    logger.info(f"🚀 Received survey submission: {response.dict()}")
     try:
         data = response.dict()
 
@@ -96,7 +99,7 @@ async def submit_survey(response: SurveyResponse):
         }
 
     except Exception as e:
-        logger.error(f"❌ Error saving survey: {e}", exc_info=True)
+        logger.error(f"❌ Submission error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     
 # Setup templates - add this right after app creation
@@ -349,7 +352,14 @@ def calculate_perspective_scores(responses: dict, questions_data: dict) -> list:
     
     for q_id, response_num in responses.items():
         if response_num is not None:  # Skip any None responses
-            question = questions_data[q_id]
+            # Convert 'q4_response' → 'Q4' before lookup
+            question_key = q_id.replace("_response", "").upper()
+
+            if question_key in questions_data:
+                question = questions_data[question_key]
+            else:
+                raise KeyError(f"❌ Question key not found: {question_key}")
+
             # Response numbers are 1-based, list indices are 0-based
             response_idx = response_num - 1
             if 0 <= response_idx < len(question["responses"]):

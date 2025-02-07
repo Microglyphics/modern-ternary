@@ -22,7 +22,7 @@ class ModernityPDFReport:
 
     def create_first_page(self, perspective: str, scores: List[float], plot_image_path: str = None):
         """Create the complete first page in the correct sequence"""
-        # 1. Title and date
+        # Title and date
         self.pdf.set_font("Arial", style="B", size=24)
         self.pdf.cell(0, 15, txt="Modernity Worldview Analysis", ln=True, align='C')
         self.pdf.ln(1)
@@ -30,32 +30,39 @@ class ModernityPDFReport:
         current_date = datetime.now().strftime("%B %d, %Y")
         self.pdf.set_font("Arial", size=10)
         self.pdf.cell(0, 10, txt=f"Survey results generated on {current_date}", ln=True, align='C')
-        self.pdf.ln(10)
+        self.pdf.ln(5)
         
-        # 2. Perspective and scores
-        self.pdf.set_font("Arial", size=14)
-        self.pdf.write(10, "Your modernity worldview perspective is: ")
-        self.pdf.set_font("Arial", style="B", size=14)
-        self.pdf.write(10, perspective)
-        self.pdf.ln(15)
-        
-        self.pdf.set_font("Arial", size=12)
-        self.pdf.cell(0, 10, txt="Your Perspective Scores:", ln=True)
-        scores_text = [
-            f"PreModern: {scores[0]:.1f}%",
-            f"Modern: {scores[1]:.1f}%",
-            f"PostModern: {scores[2]:.1f}%"
-        ]
-        for score in scores_text:
-            self.pdf.cell(0, 8, txt=score, ln=True)
-        self.pdf.ln(10)
-        
-        # 3. Visualization
+        # Visualisation
         if plot_image_path and os.path.exists(plot_image_path):
             self.pdf.image(plot_image_path, x=25, w=160)
             self.pdf.ln(10)
+            
+        # Perspective title
+        self.pdf.set_font("Arial", size=14)
+        self.pdf.cell(0, 10, "Your modernity worldview perspective is:", ln=True)
+
+        # Perspective value on new line
+        self.pdf.set_font("Arial", style="B", size=14)
+        self.pdf.cell(0, 10, perspective, ln=True)
+        self.pdf.ln(5)
         
-        # 4. Disclaimer text
+        # Header for scores section
+        self.pdf.set_font("Arial", style="B", size=12)
+        self.pdf.cell(0, 10, txt="Your Perspective Scores:", ln=True)
+
+        # Calculate widths for score cells - we'll divide the page width into three equal parts
+        page_width = self.pdf.w - 2 * self.pdf.l_margin  # Total usable width
+        score_width = page_width / 3  # Divide by 3 for equal columns
+
+        # Set scores on the same line by controlling cell width and line breaks
+        self.pdf.set_font("Arial", size=12)
+        self.pdf.cell(score_width, 8, txt=f"PreModern: {scores[0]:.1f}%", ln=0)    # ln=0 means stay on same line
+        self.pdf.cell(score_width, 8, txt=f"Modern: {scores[1]:.1f}%", ln=0)       # ln=0 means stay on same line
+        self.pdf.cell(score_width, 8, txt=f"PostModern: {scores[2]:.1f}%", ln=True)  # ln=True to end the line
+
+        self.pdf.ln(10)  # Add some space after the scores
+        
+        # Disclaimer text
         self.pdf.ln(5)
         self.pdf.set_font("Arial", style="I", size=10)
         self.pdf.multi_cell(0, 5, 
@@ -66,7 +73,7 @@ class ModernityPDFReport:
         self.pdf.set_font("Arial", size=10)
         self.pdf.write(5, "For more information, visit ")
         self.pdf.set_text_color(0, 0, 255)
-        self.pdf.write(5, "http://philosophics.blog")
+        self.pdf.write(5, "http://philosophics.blog/")
         self.pdf.set_text_color(0, 0, 0)
         self.pdf.write(5, f". All Rights Reserved © {datetime.now().year} Bry Willis, Philosophics")
 

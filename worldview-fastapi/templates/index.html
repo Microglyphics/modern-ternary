@@ -48,9 +48,9 @@
         // Ternary Plot Component
         const TernaryPlot = ({ analysisData }) => {
             const [layers, setLayers] = useState({
-                baseline: true,
+                // baseline: true,  # Hide baseline control 
                 gridLines: true,
-                mixTriangle: true,
+                categoryBoundaries: true,
                 shading: true
             });
 
@@ -434,8 +434,8 @@
                     <svg width={width} height={height} className="bg-white mx-auto" viewBox={`0 0 ${width} ${height}`}>
                         {layers.shading && generateShading()}
                         {layers.gridLines && generateGridAndTicks()}
-                        {layers.baseline && generateBaselineWithScales()}
-                        {layers.mixTriangle && generateMixTriangle()}
+                        {generateBaselineWithScales()}
+                        {layers.categoryBoundaries && generateMixTriangle()}
                         <circle cx={plotPoint.x} cy={plotPoint.y} r="6" fill="red" stroke="white" strokeWidth="2"/>
                     </svg>
                 </div>
@@ -468,15 +468,34 @@ const SurveyForm = () => {
             : 'web';
     };
 
-            useEffect(() => {
-                fetch('/api/questions')
-                    .then(res => {
-                        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-                        return res.json();
-                    })
-                    .then(data => setQuestions(data.questions))
-                    .catch(err => setError(`Error loading questions: ${err.message}`));
-            }, []);
+    useEffect(() => {
+    fetch('/api/questions')
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            // Function to shuffle an array
+            const shuffleArray = (arr) => arr.sort(() => Math.random() - 0.5);
+
+            // Convert questions object to array, shuffle, then back to object
+            const shuffledQuestionsArray = shuffleArray(Object.entries(data.questions));
+
+            // Shuffle responses for each question, but keep response ID mapping intact
+            const shuffledQuestions = Object.fromEntries(
+                shuffledQuestionsArray.map(([qKey, question]) => [
+                    qKey,
+                    {
+                        ...question,
+                        responses: shuffleArray([...question.responses]) // Randomize order
+                    }
+                ])
+            );
+
+            setQuestions(shuffledQuestions);
+        })
+        .catch(err => setError(`Error loading questions: ${err.message}`));
+}, []);
 
             const getMissingQuestions = () => {
                 if (!questions) return [];
@@ -495,7 +514,7 @@ const SurveyForm = () => {
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 setSubmissionAttempted(true);
-                
+
                 const validation = validateResponses();
                 if (!validation.isValid) {
                     setError("Please answer all questions marked in red");
@@ -508,53 +527,75 @@ const SurveyForm = () => {
 
                 setIsSubmitting(true);
                 try {
-                    let pre = 0, mod = 0, post = 0;
-                    
-                    // Calculate scores
-                    Object.entries(responses).forEach(([key, response_num]) => {
-                        const questionKey = key.toUpperCase().replace('_RESPONSE', '');
-                        const question = questions[questionKey];
-                        if (question && response_num) {
-                            const scores = question.responses[response_num - 1].scores;
-                            pre += scores[0];
-                            mod += scores[1];
-                            post += scores[2];
+                    let pre = 0, mod = 0, post = 0, total = 0;
+
+                    // Store responses as { Q1: "Q1R3", Q2: "Q2R2", ... } and map scores
+                    const responseData = {};
+                    Object.entries(responses).forEach(([qKey, selectedResponseId]) => {
+                        const formattedKey = qKey.replace("_response", "").toUpperCase(); // Convert "q1_response" -> "Q1"
+                        const question = questions[formattedKey];
+
+                        if (question) {
+                            const response = question.responses.find(r => r.id === selectedResponseId);
+                            if (response) {
+                                // Extract only the last digit (R-value) from QxRx (e.g., "Q1R3" -> 3)
+                                const rValue = parseInt(selectedResponseId.replace(/^Q\d+R/, ''), 10);
+
+                                responseData[qKey] = rValue; // Send integer (1-5) instead of "QxRx"
+                                pre += response.scores[0];
+                                mod += response.scores[1];
+                                post += response.scores[2];
+                            } else {
+                                console.error(`❌ No response found for ${formattedKey} with ID ${selectedResponseId}`);
+                            }
+                        } else {
+                            console.error(`❌ No question found for key: ${formattedKey}`);
                         }
                     });
 
-                    // Calculate plot coordinates
-                    const width = 800;
-                    const height = 700;
-                    const margin = { top: 50, right: 50, bottom: 50, left: 50 };
-                    const plotWidth = width - margin.left - margin.right;
-                    const plotHeight = height - margin.top - margin.bottom;
+                    // **Normalize scores so they sum to 100**
+                    total = pre + mod + post;
+                    if (total > 0) {
+                        pre = Math.round((pre / total) * 100);
+                        mod = Math.round((mod / total) * 100);
+                        post = Math.round((post / total) * 100);
+                    } else {
+                        console.error("❌ Total score is zero, which is unexpected.");
+                    }
 
-                    const vertices = {
-                        top: { x: plotWidth / 2 + margin.left, y: margin.top },
-                        left: { x: margin.left, y: height - margin.bottom },
-                        right: { x: width - margin.right, y: height - margin.bottom }
-                    };
+                    // Log computed scores
+                    console.log("✅ Normalized scores:", { pre, mod, post });
 
-                    const total = pre + mod + post;
+
+                    total = pre + mod + post;
+                    if (total !== 100) {
+                        console.warn(`Warning: Total score does not sum to 100. Total = ${total}`);
+                    }
+
                     const regionInfo = getRegion();
 
-                    // Create submission data with all calculated values
+                    // Calculate plot_x and plot_y based on scores
+                    const plot_x = (750 * (mod / 100) + 0 * (pre / 100) + 1500 * (post / 100)) / 2;
+                    const plot_y = (1300 * (mod / 100) + 650 * (pre / 100) + 650 * (post / 100)) / 2;
+
                     const submissionData = {
                         session_id: crypto.randomUUID(),
-                        ...responses,
+                        ...responseData,  // QxRx-based answers
                         n1: pre,
                         n2: mod,
                         n3: post,
-                        plot_x: Math.round((vertices.left.x * (post/total) + 
-                                vertices.top.x * (mod/total) + 
-                                vertices.right.x * (pre/total)) * 100) / 100,
-                        plot_y: Math.round((vertices.left.y * (post/total) + 
-                                vertices.top.y * (mod/total) + 
-                                vertices.right.y * (pre/total)) * 100) / 100,
+                        plot_x: Math.round(plot_x),
+                        plot_y: Math.round(plot_y),
                         browser: navigator.userAgent,
                         region: regionInfo.primary,
                         source: getSource()
                     };
+
+                    // Log computed coordinates for debugging
+                    console.log("✅ Computed plot coordinates:", { plot_x, plot_y });
+
+                    // Log final submission payload
+                    console.log("Final submission payload:", submissionData);
 
                     const submitResponse = await fetch('/api/submit', {
                         method: 'POST',
@@ -569,14 +610,7 @@ const SurveyForm = () => {
                     const analysisResponse = await fetch('/api/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            Q1: responses.q1_response,
-                            Q2: responses.q2_response,
-                            Q3: responses.q3_response,
-                            Q4: responses.q4_response,
-                            Q5: responses.q5_response,
-                            Q6: responses.q6_response
-                        })
+                        body: JSON.stringify(responseData) // Use mapped response IDs
                     });
 
                     const analysisText = await analysisResponse.text();
@@ -594,6 +628,8 @@ const SurveyForm = () => {
                 }
                 setIsSubmitting(false);
             };
+
+
 
             if (!questions) {
                 return (
@@ -759,21 +795,21 @@ const SurveyForm = () => {
                                                     : 'hover:bg-gray-50'
                                             }`}
                                         >
-                                            <input
-                                                type="radio"
-                                                id={response.id}
-                                                name={id.toLowerCase() + '_response'}
-                                                value={index + 1}
-                                                onChange={(e) => {
-                                                    setResponses({
-                                                        ...responses,
-                                                        [id.toLowerCase() + '_response']: parseInt(e.target.value)
-                                                    });
-                                                    setError(null);
-                                                }}
-                                                checked={responses[id.toLowerCase() + '_response'] === index + 1}
-                                                className="mt-1"
-                                            />
+                                        <input
+                                            type="radio"
+                                            id={response.id}
+                                            name={id.toLowerCase() + '_response'}
+                                            value={response.id}  // Store QxRx ID instead of index
+                                            onChange={(e) => {
+                                                setResponses({
+                                                    ...responses,
+                                                    [id.toLowerCase() + '_response']: e.target.value // Store selected QxRx
+                                                });
+                                                setError(null);
+                                            }}
+                                            checked={responses[id.toLowerCase() + '_response'] === response.id}
+                                        />
+
                                             <label 
                                                 htmlFor={response.id} 
                                                 className="text-gray-700 cursor-pointer flex-grow"

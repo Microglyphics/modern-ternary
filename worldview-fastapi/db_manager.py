@@ -41,31 +41,24 @@ class DatabaseManager:
     def _get_db_config(self):
         """Get database configuration based on environment"""
         if self.is_gae:
-            # App Engine - use Unix socket with correct instance name
-            instance_name = os.getenv('INSTANCE_CONNECTION_NAME', 
-                                    'modernity-worldview:us-central1:modernity-db')
-            logger.info(f"Using Cloud SQL instance: {instance_name}")
-            
+            instance_name = os.getenv('INSTANCE_CONNECTION_NAME')
             socket_path = f"/cloudsql/{instance_name}"
-            logger.info(f"Socket path: {socket_path}")
             
             return {
-                'user': os.getenv('DB_USER', 'app_user'),
-                'password': os.getenv('DB_PASSWORD', '9pQK?fJF.9Lm]nv;'),
-                'database': os.getenv('DB_NAME', 'modernity_survey'),
+                'user': os.getenv('DB_USER'),
+                'password': os.getenv('DB_PASSWORD'),
+                'database': os.getenv('DB_NAME'),
                 'unix_socket': socket_path,
-                'connect_timeout': 60  # Increase timeout for cloud connections
+                'connect_timeout': 60
             }
         else:
-            # Local development - use TCP with Cloud SQL proxy
-            logger.info("Using local development configuration")
             return {
-                'host': os.getenv('DB_HOST', '127.0.0.1'),
+                'host': os.getenv('DB_HOST'),
                 'port': int(os.getenv('DB_PORT', '3307')),
-                'user': os.getenv('DB_USER', 'app_user'),
-                'password': os.getenv('DB_PASSWORD', '9pQK?fJF.9Lm]nv;'),
-                'database': os.getenv('DB_NAME', 'modernity_survey'),
-                'connect_timeout': 10  # Shorter timeout for local connections
+                'user': os.getenv('DB_USER'),
+                'password': os.getenv('DB_PASSWORD'),
+                'database': os.getenv('DB_NAME'),
+                'connect_timeout': 10
             }
 
     @contextmanager
